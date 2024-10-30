@@ -7,7 +7,7 @@ import OtherComponent from './OtherComponent'; // Make sure to import any other 
 // Create a GrowthBook instance
 const gb = new GrowthBook({
   apiHost: "https://cdn.growthbook.io",
-  clientKey: "sdk-abc123", // Replace with your actual client key
+  clientKey: "sdk-kBW0vcs9lDPHZcsS", // Replace with your actual client key
   enableDevMode: true,
   // Tracking callback to log experiment results
   trackingCallback: (experiment, result) => {
