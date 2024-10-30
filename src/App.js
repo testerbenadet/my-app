@@ -1,11 +1,13 @@
 import React, { useEffect } from "react";
+import logo from './logo.svg'; // Importing the logo
+import './App.css'; // Importing the CSS file
 import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
 import OtherComponent from './OtherComponent'; // Make sure to import any other components you use
 
 // Create a GrowthBook instance
 const gb = new GrowthBook({
   apiHost: "https://cdn.growthbook.io",
-  clientKey: "sdk-kBW0vcs9lDPHZcsS", // Replace with your actual client key
+  clientKey: "sdk-abc123", // Replace with your actual client key
   enableDevMode: true,
   // Tracking callback to log experiment results
   trackingCallback: (experiment, result) => {
@@ -38,7 +40,13 @@ export default function App() {
 
   return (
     <GrowthBookProvider growthbook={gb}>
-      <OtherComponent />
+      <div className="App">
+        <header className="App-header">
+          <img src={logo} className="App-logo" alt="logo" />
+          <h1>hello my name is nick</h1>
+        </header>
+        <OtherComponent />
+      </div>
     </GrowthBookProvider>
   );
 }
