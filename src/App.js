@@ -39,20 +39,14 @@ export default function App() {
   }, []); // Empty dependency array to run once on mount
 
   return (
-<<<<<<< HEAD
-    <div>
-      <h1>hello my name</h1>
-    </div>
-=======
     <GrowthBookProvider growthbook={gb}>
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <h1>hello my name is</h1>
+          <h1>hello my name is olle</h1>
         </header>
         <OtherComponent />
       </div>
     </GrowthBookProvider>
->>>>>>> origin/main
   );
 }
