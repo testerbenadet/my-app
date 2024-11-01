@@ -43,6 +43,7 @@ export default function App() {
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <h1>hello my name is nick</h1>
+          <button className="cta-button">Add to Cart</button>
         </header>
       </div>
     </GrowthBookProvider>
