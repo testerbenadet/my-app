@@ -42,7 +42,7 @@ export default function App() {
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <h1>hello my name is olle</h1>
+          <h1>hello my name is nick</h1>
         </header>
       </div>
     </GrowthBookProvider>
