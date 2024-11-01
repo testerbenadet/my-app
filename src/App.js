@@ -44,7 +44,6 @@ export default function App() {
           <img src={logo} className="App-logo" alt="logo" />
           <h1>hello my name is olle</h1>
         </header>
-        <OtherComponent />
       </div>
     </GrowthBookProvider>
   );
