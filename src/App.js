@@ -43,7 +43,19 @@ export default function App() {
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <h1>hello my name is nick</h1>
-          <button className="cta-button">Add to Cart</button>
+          <button
+            className="cta-button"
+            onClick={() => {
+              window.dataLayer = window.dataLayer || [];
+              window.dataLayer.push({
+                event: "addToCartClick",
+                buttonText: "Add to Cart",
+                pagePath: window.location.pathname,
+              });
+            }}
+>
+  Add to Cart
+</button>
         </header>
       </div>
     </GrowthBookProvider>
