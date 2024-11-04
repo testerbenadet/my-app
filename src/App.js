@@ -24,8 +24,11 @@ const gb = new GrowthBook({
   // Tracking callback to log experiment results
   trackingCallback: (experiment, result) => {
     console.log("Experiment Viewed", {
-      experimentId: experiment.key,
-      variationId: result.key,
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+      event: "experiment_viewed"
+      experiment_id: experiment.key,
+      variation_id: result.key,
     });
   },
 });
