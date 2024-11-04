@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import logo from './logo.svg'; // Importing the logo
 import './App.css'; // Importing the CSS file
-import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react"; // No IfFeatureEnabled needed
+import { GrowthBook, GrowthBookProvider, useFeatureIsOn } from "@growthbook/growthbook-react";
 
 // Create a GrowthBook instance
 const gb = new GrowthBook({
@@ -43,21 +43,30 @@ export default function App() {
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <h1>hello my name is nick</h1>
-          <button
-            className="cta-button"
-            onClick={() => {
-              window.dataLayer = window.dataLayer || [];
-              window.dataLayer.push({
-                event: gb.isOn("buy-now-atc") ? "buyNowClick" : "addToCartClick", // Event name based on flag
-                buttonText: gb.isOn("buy-now-atc") ? "Buy Now!" : "Add to Cart", // Log based on feature flag
-                pagePath: window.location.pathname,
-              });
-            }}
-          >
-            {gb.isOn("buy-now-atc") ? "Buy Now!" : "Add to Cart"} {/* Conditionally display text */}
-          </button>
+          <CTAButton />
         </header>
       </div>
     </GrowthBookProvider>
+  );
+}
+
+function CTAButton() {
+  // Using the `useFeatureIsOn` hook to check if the feature is enabled
+  const isBuyNowEnabled = useFeatureIsOn("buy-now-atc");
+
+  return (
+    <button
+      className="cta-button"
+      onClick={() => {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: isBuyNowEnabled ? "buyNowClick" : "addToCartClick", // Event name based on flag
+          buttonText: isBuyNowEnabled ? "Buy Now!" : "Add to Cart", // Log based on feature flag
+          pagePath: window.location.pathname,
+        });
+      }}
+    >
+      {isBuyNowEnabled ? "Buy Now!" : "Add to Cart"} {/* Conditionally display text */}
+    </button>
   );
 }
