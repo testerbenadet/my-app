@@ -22,13 +22,12 @@ const gb = new GrowthBook({
   clientKey: "sdk-kBW0vcs9lDPHZcsS", // Replace with your actual client key
   enableDevMode: true,
   // Tracking callback to log experiment results
-  trackingCallback: (experiment, result) => {
-    console.log("Experiment Viewed", {
-      window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push({
-      event: "experiment_viewed"
+    trackingCallback: (experiment, result) => {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: "experiment_viewed",  // Custom event name for GTM
       experiment_id: experiment.key,
-      variation_id: result.key
+      variation_id: result.key,
     });
   },
 });
