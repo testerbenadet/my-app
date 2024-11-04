@@ -10,12 +10,10 @@ const gb = new GrowthBook({
   enableDevMode: true,
   // Tracking callback to log experiment results
   trackingCallback: (experiment, result) => {
-    const userPseudoId = getUserPseudoId();
     console.log("Experiment Viewed", {
       experimentId: experiment.key,
       variationId: result.key,
-      anonymous_id: getUserPseudoId()
-    });
+         });
   },
 });
 
@@ -23,18 +21,6 @@ const gb = new GrowthBook({
 gb.init({
   streaming: true,
 });
-
-function getUserPseudoId() {
-  const gaCookie = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("_ga="));
-  
-  if (gaCookie) {
-    const segments = gaCookie.split(".");
-    return segments.slice(2).join("."); // Extract unique ID part (XXXX.YYYY)
-  }
-  return null;
-}
 
 export default function App() {
   useEffect(() => {
@@ -48,8 +34,7 @@ export default function App() {
     gb.setAttributes({
       id: user.id,
       company: user.company,
-      anonymous_id: userPseudoId,
-    });
+          });
   }, []); // Empty dependency array to run once on mount
 
   return (
