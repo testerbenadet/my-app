@@ -34,7 +34,7 @@ export default function App() {
     gb.setAttributes({
       id: user.id,
       company: user.company,
-      anonymous_id: userPseudoId
+      anonymous_id: userPseudoId,
     });
   }, []); // Empty dependency array to run once on mount
 
