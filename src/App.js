@@ -28,7 +28,7 @@ const gb = new GrowthBook({
       window.dataLayer.push({
       event: "experiment_viewed"
       experiment_id: experiment.key,
-      variation_id: result.key,
+      variation_id: result.key
     });
   },
 });
