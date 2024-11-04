@@ -60,7 +60,7 @@ function CTAButton() {
       onClick={() => {
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({
-          event: isBuyNowEnabled ? "buyNowClick" : "addToCartClick", // Event name based on flag
+          event: "addToCartClick", // Event name based on flag
           buttonText: isBuyNowEnabled ? "Buy Now!" : "Add to Cart", // Log based on feature flag
           pagePath: window.location.pathname,
         });
