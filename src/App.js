@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import logo from './logo.svg'; // Importing the logo
 import './App.css'; // Importing the CSS file
-import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react"
+import { GrowthBook, GrowthBookProvider, IfFeatureEnabled, FeatureString } from "@growthbook/growthbook-react"
 
 // Create a GrowthBook instance
 const gb = new GrowthBook({
@@ -49,13 +49,16 @@ export default function App() {
               window.dataLayer = window.dataLayer || [];
               window.dataLayer.push({
                 event: "addToCartClick",
-                buttonText: "Add to Cart",
+                buttonText: "Buy Now!",
                 pagePath: window.location.pathname,
               });
             }}
->
-  Add to Cart
-</button>
+          >
+            <IfFeatureEnabled feature="buy-now-atc">
+              Buy Now!
+            </IfFeatureEnabled>
+            <IfFeatureEnabled feature="buy-now-atc" fallback="Add to Cart" />
+          </button>
         </header>
       </div>
     </GrowthBookProvider>
