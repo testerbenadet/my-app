@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import logo from './logo.svg'; // Importing the logo
 import './App.css'; // Importing the CSS file
-import { GrowthBook, GrowthBookProvider, IfFeatureEnabled, FeatureString } from "@growthbook/growthbook-react"; // Import both IfFeatureEnabled and FeatureString
+import { GrowthBook, GrowthBookProvider, IfFeatureEnabled } from "@growthbook/growthbook-react"; // <-- Updated import to include IfFeatureEnabled
 
 // Create a GrowthBook instance
 const gb = new GrowthBook({
@@ -48,15 +48,16 @@ export default function App() {
             onClick={() => {
               window.dataLayer = window.dataLayer || [];
               window.dataLayer.push({
-                event: "ctaClick",
-                buttonText: gb.isOn("buy-now-atc") ? "Buy Now!" : "Add to Cart", // Log based on feature flag
+                event: "addToCartClick",
+                buttonText: "Buy Now!", // <-- Set default button text to match feature flag option
                 pagePath: window.location.pathname,
               });
             }}
           >
-            <IfFeatureEnabled feature="buy-now-atc" fallback="Add to Cart">
-              <FeatureString feature="buy-now-atc" default="Buy Now!" /> {/* Feature text */}
+            <IfFeatureEnabled feature="buy-now-atc"> {/* <-- Wraps button text for conditional display */}
+              Buy Now!
             </IfFeatureEnabled>
+            <IfFeatureEnabled feature="buy-now-atc" fallback="Add to Cart" /> {/* <-- Fallback text if feature flag is off */}
           </button>
         </header>
       </div>
