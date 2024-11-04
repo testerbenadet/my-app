@@ -3,6 +3,19 @@ import logo from './logo.svg'; // Importing the logo
 import './App.css'; // Importing the CSS file
 import { GrowthBook, GrowthBookProvider, useFeatureIsOn } from "@growthbook/growthbook-react";
 
+// Utility function to get _ga cookie value
+const getGACookie = () => {
+  const gaCookie = document.cookie
+    .split("; ")
+    .find(row => row.startsWith("_ga="));
+  if (gaCookie) {
+    // _ga cookie format is GA1.2.123456789.987654321
+    const parts = gaCookie.split(".");
+    return parts.slice(-2).join("."); // Return the last two parts as user_pseudo_id
+  }
+  return null;
+};
+
 // Create a GrowthBook instance
 const gb = new GrowthBook({
   apiHost: "https://cdn.growthbook.io",
@@ -13,7 +26,7 @@ const gb = new GrowthBook({
     console.log("Experiment Viewed", {
       experimentId: experiment.key,
       variationId: result.key,
-         });
+    });
   },
 });
 
@@ -24,17 +37,13 @@ gb.init({
 
 export default function App() {
   useEffect(() => {
-    // Assuming you have access to a user object
-    const user = {
-      id: 'user123', // Replace with actual user ID
-      company: 'MyCompany', // Replace with actual company name
-    };
+    // Get the user_pseudo_id from the _ga cookie
+    const user_pseudo_id = getGACookie();
 
-    // Set user attributes for targeting
+    // Set user attributes for targeting, including user_pseudo_id if available
     gb.setAttributes({
-      id: user.id,
-      company: user.company,
-          });
+      user_pseudo_id: user_pseudo_id || 'default_id', // Use default if _ga not set
+    });
   }, []); // Empty dependency array to run once on mount
 
   return (
@@ -51,7 +60,6 @@ export default function App() {
 }
 
 function CTAButton() {
-  // Using the `useFeatureIsOn` hook to check if the feature is enabled
   const isBuyNowEnabled = useFeatureIsOn("buy-now-atc");
 
   return (
@@ -60,13 +68,13 @@ function CTAButton() {
       onClick={() => {
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({
-          event: "addToCartClick", // Event name based on flag
-          buttonText: isBuyNowEnabled ? "Buy Now!" : "Add to Cart", // Log based on feature flag
+          event: "addToCartClick",
+          buttonText: isBuyNowEnabled ? "Buy Now!" : "Add to Cart",
           pagePath: window.location.pathname,
         });
       }}
     >
-      {isBuyNowEnabled ? "Buy Now!" : "Add to Cart"} {/* Conditionally display text */}
+      {isBuyNowEnabled ? "Buy Now!" : "Add to Cart"}
     </button>
   );
 }
