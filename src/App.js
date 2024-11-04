@@ -43,22 +43,34 @@ export default function App() {
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <h1>hello my name is nick</h1>
-          <button
+          <IfFeatureEnabled feature="buy-now-atc"> {/* Conditionally render button or additional behavior */}
+            <button
+              className="cta-button buy-now" // Optionally add a new class if needed for styling
+              onClick={() => {
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({
+                  event: "buyNowClick", // Different event if feature is enabled
+                  buttonText: "Buy Now!",
+                  pagePath: window.location.pathname,
+                });
+              }}
+            >
+              <FeatureString feature="buy-now-atc" default="Add to Cart" /> {/* Handle text change */}
+            </button>
+          </IfFeatureEnabled>
+          <IfFeatureEnabled feature="buy-now-atc" fallback={<button
             className="cta-button"
             onClick={() => {
               window.dataLayer = window.dataLayer || [];
               window.dataLayer.push({
                 event: "addToCartClick",
-                buttonText: "Buy Now!",
+                buttonText: "Add to Cart",
                 pagePath: window.location.pathname,
               });
             }}
           >
-            <IfFeatureEnabled feature="buy-now-atc">
-              Buy Now!
-            </IfFeatureEnabled>
-            <IfFeatureEnabled feature="buy-now-atc" fallback="Add to Cart" />
-          </button>
+            Add to Cart
+          </button>}/>
         </header>
       </div>
     </GrowthBookProvider>
