@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import logo from './logo.svg'; // Importing the logo
 import './App.css'; // Importing the CSS file
-import { GrowthBook, GrowthBookProvider, useFeatureIsOn } from "@growthbook/growthbook-react";
+import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react"
 
 // Create a GrowthBook instance
 const gb = new GrowthBook({
@@ -23,8 +23,6 @@ gb.init({
 });
 
 export default function App() {
-    const isBuyNowEnabled = useFeatureIsOn("buy-now-atc");
-  
   useEffect(() => {
     // Assuming you have access to a user object
     const user = {
@@ -51,12 +49,12 @@ export default function App() {
               window.dataLayer = window.dataLayer || [];
               window.dataLayer.push({
                 event: "addToCartClick",
-                buttonText: isBuyNowEnabled ? "Buy Now!" : "Add to Cart",
+                buttonText: "Add to Cart",
                 pagePath: window.location.pathname,
               });
             }}
 >
-  {isBuyNowEnabled ? "Buy Now!" : "Add to Cart"}
+  Add to Cart
 </button>
         </header>
       </div>
