@@ -38,7 +38,7 @@ function setupGrowthBook() {
 }
 
 function initializeGrowthBook() {
-  if (window.CookieConsent && CookieConsent.consent && CookieConsent.consent.statistics()) {
+  if (window.Cookiebot && Cookiebot.consent && Cookiebot.consent.statistics()) {
     setupGrowthBook();
   } else {
     console.warn("User has not consented to feature initialization.");
