@@ -17,6 +17,7 @@ const getGACookie = () => {
 };
 
 // Create a GrowthBook instance
+/* global Cookiebot */
 let gb;  // Declare gb at a higher scope so it's accessible
 
 function setupGrowthBook() {
