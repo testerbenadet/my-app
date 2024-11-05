@@ -20,7 +20,7 @@ const getGACookie = () => {
 function setupGrowthBook() {
   const gbFeaturesCache = new GrowthBook({
     apiHost: "https://cdn.growthbook.io",
-    clientKey: "sdk-kBW0vcs9lDPHZcsS"",
+    clientKey: "sdk-kBW0vcs9lDPHZcsS",
     enableDevMode: true,
     trackingCallback: (experiment, result) => {  // Inline trackingCallback function
       window.dataLayer = window.dataLayer || [];
