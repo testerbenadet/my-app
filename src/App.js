@@ -27,7 +27,7 @@ function setupGrowthBook() {
 }
 
 function initializeGrowthBook() {
-  if (window.CookieConsent && CookieConsent.consent && CookieConsent.consent.statistics;()) {  // Replace `userHasConsented()` with actual consent check logic
+  if (window.CookieConsent && CookieConsent.consent && CookieConsent.consent.statistics()) {  // Replace `userHasConsented()` with actual consent check logic
     setupGrowthBook();
   } else {
     console.warn("User has not consented to feature initialization.");
