@@ -17,10 +17,22 @@ const getGACookie = () => {
 };
 
 // Create a GrowthBook instance
-const gb = new GrowthBook({
-  apiHost: "https://cdn.growthbook.io",
-  clientKey: "sdk-kBW0vcs9lDPHZcsS", // Replace with your actual client key
-  enableDevMode: true,
+function setupGrowthBook() {
+  const gbFeaturesCache = new GrowthBook({
+    apiHost: "https://cdn.growthbook.io",
+    clientKey: "sdk-kBW0vcs9lDPHZcsS",
+    enableDevMode: true
+  });
+  gbFeaturesCache.loadFeatures();
+}
+
+function initializeGrowthBook() {
+  if (window.CookieConsent && CookieConsent.consent && CookieConsent.consent.statistics;()) {  // Replace `userHasConsented()` with actual consent check logic
+    setupGrowthBook();
+  } else {
+    console.warn("User has not consented to feature initialization.");
+  }
+}
   // Tracking callback to log experiment results
     trackingCallback: (experiment, result) => {
     window.dataLayer = window.dataLayer || [];
