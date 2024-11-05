@@ -17,6 +17,8 @@ const getGACookie = () => {
 };
 
 // Create a GrowthBook instance
+let gb;  // Declare gb at a higher scope so it's accessible
+
 function setupGrowthBook() {
   const gbFeaturesCache = new GrowthBook({
     apiHost: "https://cdn.growthbook.io",
