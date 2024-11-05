@@ -20,29 +20,27 @@ const getGACookie = () => {
 function setupGrowthBook() {
   const gbFeaturesCache = new GrowthBook({
     apiHost: "https://cdn.growthbook.io",
-    clientKey: "sdk-kBW0vcs9lDPHZcsS",
-    enableDevMode: true
+    clientKey: "sdk-kBW0vcs9lDPHZcsS"",
+    enableDevMode: true,
+    trackingCallback: (experiment, result) => {  // Inline trackingCallback function
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "experiment_viewed",  // Custom event name for GTM
+        experiment_id: experiment.key,
+        variation_id: result.key,
+      });
+    },
   });
   gbFeaturesCache.loadFeatures();
 }
 
 function initializeGrowthBook() {
-  if (window.CookieConsent && CookieConsent.consent && CookieConsent.consent.statistics()) {  // Replace `userHasConsented()` with actual consent check logic
+  if (window.CookieConsent && CookieConsent.consent && CookieConsent.consent.statistics()) {
     setupGrowthBook();
   } else {
     console.warn("User has not consented to feature initialization.");
   }
 }
-  // Tracking callback to log experiment results
-    trackingCallback: (experiment, result) => {
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({
-      event: "experiment_viewed",  // Custom event name for GTM
-      experiment_id: experiment.key,
-      variation_id: result.key,
-    });
-  },
-});
 
 // Initialize GrowthBook with optional streaming updates
 gb.init({
