@@ -73,7 +73,6 @@ export default function App() {
   }, []);
 
   if (!gb) {
-    <GrowthBookProvider growthbook={gb}>
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
@@ -81,7 +80,6 @@ export default function App() {
           <CTAButton />
         </header>
       </div>
-    </GrowthBookProvider>
   }
 
   return (
