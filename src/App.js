@@ -50,10 +50,9 @@ export default function App() {
 
     const checkConsentStatus = () => {
       if (
-        window.Cookiebot &&
-        window.Cookiebot.consents &&
-        window.Cookiebot.consents["CookieConsent"] &&
-        window.Cookiebot.consents["CookieConsent"].consented === true
+        window.CookieControl &&
+        window.CookieControl.cookie &&
+        window.CookieControl.cookie.consent === true
       ) {
         console.log("Consent given for analytics cookies");
         initializeGrowthBook();
