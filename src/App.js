@@ -15,24 +15,29 @@ const getGACookie = () => {
   return null;
 };
 
-// Function to check CookieConsent for statistics consent
+// Function to parse CookieConsent and check for statistics consent
 const hasStatisticsConsent = () => {
   const consentCookie = document.cookie
     .split("; ")
     .find(row => row.startsWith("CookieConsent="));
 
   if (consentCookie) {
-    const cookieValue = decodeURIComponent(consentCookie.split("=")[1]);
+    const cookieValue = consentCookie.split("=")[1];
 
-    // Convert the cookie string to an object
-    try {
-      const consentData = JSON.parse(cookieValue.replace(/'/g, '"')); // Convert single to double quotes
+    // Manually parse the cookie string to check if statistics is true
+    const consentParts = cookieValue.split(',');
+    const consentObject = {};
 
-      return consentData.statistics === true;
-    } catch (error) {
-      console.error("Error parsing CookieConsent:", error);
-      return false;
-    }
+    consentParts.forEach(part => {
+      const [key, value] = part.split(':');
+      const cleanKey = key.replace(/[{}'"]/g, '').trim();
+      const cleanValue = value.replace(/[{}'"]/g, '').trim();
+
+      // Convert "true" and "false" to boolean values
+      consentObject[cleanKey] = cleanValue === 'true' ? true : cleanValue === 'false' ? false : cleanValue;
+    });
+
+    return consentObject.statistics === true;
   }
   return false;
 };
