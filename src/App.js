@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect } from "react";
+import logo from './logo.svg'; // Importing the logo
+import './App.css'; // Importing the CSS file
 import { GrowthBook, GrowthBookProvider, useFeatureIsOn } from "@growthbook/growthbook-react";
 
 // Utility function to get _ga cookie value
@@ -9,75 +9,44 @@ const getGACookie = () => {
     .split("; ")
     .find(row => row.startsWith("_ga="));
   if (gaCookie) {
+    // _ga cookie format is GA1.2.123456789.987654321
     const parts = gaCookie.split(".");
-    return parts.slice(-2).join(".");
+    return parts.slice(-2).join("."); // Return the last two parts as user_pseudo_id
   }
   return null;
 };
 
-// Create a GrowthBook instance but don't initialize it immediately
+// Create a GrowthBook instance
 const gb = new GrowthBook({
   apiHost: "https://cdn.growthbook.io",
-  clientKey: "sdk-kBW0vcs9lDPHZcsS",
+  clientKey: "sdk-kBW0vcs9lDPHZcsS", // Replace with your actual client key
   enableDevMode: true,
-  trackingCallback: (experiment, result) => {
+  // Tracking callback to log experiment results
+    trackingCallback: (experiment, result) => {
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({
-      event: "experiment_viewed",
+      event: "experiment_viewed",  // Custom event name for GTM
       experiment_id: experiment.key,
       variation_id: result.key,
     });
   },
 });
 
+// Initialize GrowthBook with optional streaming updates
+gb.init({
+  streaming: true,
+});
+
 export default function App() {
-  const [isGrowthBookInitialized, setIsGrowthBookInitialized] = useState(false);
-
   useEffect(() => {
-    const initializeGrowthBook = () => {
-      console.log("Initializing GrowthBook");
-      const user_pseudo_id = getGACookie();
-      gb.setAttributes({
-        user_pseudo_id: user_pseudo_id || 'default_id',
-      });
+    // Get the user_pseudo_id from the _ga cookie
+    const user_pseudo_id = getGACookie();
 
-      gb.init({
-        streaming: true,
-      });
-
-      setIsGrowthBookInitialized(true); // Mark GrowthBook as initialized
-    };
-
-    const checkCookiebot = () => {
-      if (window.Cookiebot) {
-        console.log("Cookiebot detected");
-        const consentGiven = window.Cookiebot.consents && window.Cookiebot.consents.analytics;
-
-        if (consentGiven) {
-          console.log("Consent given for analytics cookies");
-          initializeGrowthBook();
-        } else {
-          console.log("Consent not yet given");
-        }
-      } else {
-        console.log("Cookiebot not detected");
-      }
-    };
-
-    // Delay the check by 1 second to allow GTM to load Cookiebot
-    setTimeout(checkCookiebot, 1000);
-
-    // Listener for future consent updates
-    window.addEventListener("CookieConsentUpdate", checkCookiebot);
-
-    return () => {
-      window.removeEventListener("CookieConsentUpdate", checkCookiebot);
-    };
-  }, []);
-
-  if (!isGrowthBookInitialized) {
-    return <div>Loading...</div>;
-  }
+    // Set user attributes for targeting, including user_pseudo_id if available
+    gb.setAttributes({
+      user_pseudo_id: user_pseudo_id || 'default_id', // Use default if _ga not set
+    });
+  }, []); // Empty dependency array to run once on mount
 
   return (
     <GrowthBookProvider growthbook={gb}>
