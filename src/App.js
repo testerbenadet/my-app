@@ -32,26 +32,19 @@ const gb = new GrowthBook({
 
 export default function App() {
   const [isConsentGiven, setIsConsentGiven] = useState(false);
+  const [isCookiebotChecked, setIsCookiebotChecked] = useState(false);
 
   useEffect(() => {
-    const checkCookiebotConsent = () => {
-      // Check if Cookiebot exists and if analytics consent is given
+    const checkCookiebot = () => {
       if (window.Cookiebot && window.Cookiebot.consents) {
         const consentGiven = window.Cookiebot.consents.analytics;
         setIsConsentGiven(consentGiven);
-        return true;
       }
-      return false;
+      setIsCookiebotChecked(true); // Mark check as complete, even if Cookiebot isn’t available
     };
 
-    // Polling function to check for Cookiebot availability
-    const intervalId = setInterval(() => {
-      if (checkCookiebotConsent()) {
-        clearInterval(intervalId); // Stop polling once consent is confirmed
-      }
-    }, 500); // Check every 500ms
-
-    return () => clearInterval(intervalId);
+    // Delay the check by 1 second to allow GTM to load Cookiebot
+    setTimeout(checkCookiebot, 1000);
   }, []);
 
   useEffect(() => {
@@ -67,8 +60,13 @@ export default function App() {
     }
   }, [isConsentGiven]);
 
+  // Render a loading state if Cookiebot hasn’t been checked yet
+  if (!isCookiebotChecked) {
+    return <div>Loading...</div>;
+  }
+
   return (
-    <GrowthBookProvider growthbook={isConsentGiven ? gb : null}>
+    <GrowthBookProvider growthbook={isConsentGiven ? gb : new GrowthBook({})}>
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
