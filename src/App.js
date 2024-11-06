@@ -32,23 +32,11 @@ const gb = new GrowthBook({
 
 export default function App() {
   const [isConsentGiven, setIsConsentGiven] = useState(false);
-  const [isCookiebotChecked, setIsCookiebotChecked] = useState(false);
+  const [isGrowthBookInitialized, setIsGrowthBookInitialized] = useState(false);
 
   useEffect(() => {
-    const checkCookiebot = () => {
-      if (window.Cookiebot && window.Cookiebot.consents) {
-        const consentGiven = window.Cookiebot.consents.analytics;
-        setIsConsentGiven(consentGiven);
-      }
-      setIsCookiebotChecked(true); // Mark check as complete, even if Cookiebot isn’t available
-    };
-
-    // Delay the check by 1 second to allow GTM to load Cookiebot
-    setTimeout(checkCookiebot, 1000);
-  }, []);
-
-  useEffect(() => {
-    if (isConsentGiven) {
+    const initializeGrowthBook = () => {
+      // Only initialize if consent has been given
       const user_pseudo_id = getGACookie();
       gb.setAttributes({
         user_pseudo_id: user_pseudo_id || 'default_id',
@@ -57,16 +45,34 @@ export default function App() {
       gb.init({
         streaming: true,
       });
-    }
-  }, [isConsentGiven]);
 
-  // Render a loading state if Cookiebot hasn’t been checked yet
-  if (!isCookiebotChecked) {
-    return <div>Loading...</div>;
-  }
+      setIsGrowthBookInitialized(true); // Mark GrowthBook as initialized
+    };
+
+    const checkCookiebot = () => {
+      if (window.Cookiebot && window.Cookiebot.consents) {
+        const consentGiven = window.Cookiebot.consents.analytics;
+        setIsConsentGiven(consentGiven);
+
+        if (consentGiven && !isGrowthBookInitialized) {
+          initializeGrowthBook();
+        }
+      }
+    };
+
+    // Delay the check by 1 second to allow GTM to load Cookiebot
+    setTimeout(checkCookiebot, 1000);
+
+    // Listener for future consent updates
+    window.addEventListener("CookieConsentUpdate", checkCookiebot);
+
+    return () => {
+      window.removeEventListener("CookieConsentUpdate", checkCookiebot);
+    };
+  }, [isGrowthBookInitialized]);
 
   return (
-    <GrowthBookProvider growthbook={isConsentGiven ? gb : new GrowthBook({})}>
+    <GrowthBookProvider growthbook={isGrowthBookInitialized ? gb : null}>
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
