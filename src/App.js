@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
-import logo from './logo.svg'; // Importing the logo
-import './App.css'; // Importing the CSS file
-import { GrowthBook, GrowthBookProvider, useFeatureIsOn } from "@growthbook/growthbook-react";
+import React, { useEffect, useState } from 'react';
+import { GrowthBook, GrowthBookProvider, useFeatureIsOn } from '@growthbook/growthbook-react';
+import logo from './logo.svg';
+import './App.css';
 
 // Utility function to get _ga cookie value
 const getGACookie = () => {
@@ -9,72 +9,78 @@ const getGACookie = () => {
     .split("; ")
     .find(row => row.startsWith("_ga="));
   if (gaCookie) {
-    // _ga cookie format is GA1.2.123456789.987654321
     const parts = gaCookie.split(".");
-    return parts.slice(-2).join("."); // Return the last two parts as user_pseudo_id
+    return parts.slice(-2).join(".");
   }
   return null;
 };
 
-// Create a GrowthBook instance
-const gb = new GrowthBook({
-  apiHost: "https://cdn.growthbook.io",
-  clientKey: "sdk-kBW0vcs9lDPHZcsS", // Replace with your actual client key
-  enableDevMode: true,
-  // Tracking callback to log experiment results
-    trackingCallback: (experiment, result) => {
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({
-      event: "experiment_viewed",  // Custom event name for GTM
-      experiment_id: experiment.key,
-      variation_id: result.key,
-    });
-  },
-});
-
-// Initialize GrowthBook with optional streaming updates
-gb.init({
-  streaming: true,
-});
-
-
-export default function App() {
-  const [hasConsent, setHasConsent] = useState(false);
-  const [isGrowthBookInitialized, setIsGrowthBookInitialized] = useState(false);
+// GrowthBookWrapper component
+const GrowthBookWrapper = ({ children }) => {
+  const [gb, setGb] = useState(null);
 
   useEffect(() => {
-    const checkConsent = () => {
-      if (window.CookieControl && window.CookieControl.Cookie) {
-        setHasConsent(window.CookieControl.Cookie.consented === true);
-      }
+    const initGrowthBook = () => {
+      const growthbook = new GrowthBook({
+        apiHost: "https://cdn.growthbook.io",
+        clientKey: "sdk-kBW0vcs9lDPHZcsS", // Replace with your actual client key
+        enableDevMode: true,
+        trackingCallback: (experiment, result) => {
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({
+            event: "experiment_viewed",
+            experiment_id: experiment.key,
+            variation_id: result.key,
+          });
+        }
+      });
+
+      const user_pseudo_id = getGACookie() || 'default_id';
+      growthbook.setAttributes({ user_pseudo_id });
+
+      growthbook.loadFeatures().then(() => {
+        setGb(growthbook);
+      });
     };
 
-    checkConsent(); // Initial consent check on mount
-
-    // Poll for consent status every 500 ms until consent is granted
-    const intervalId = setInterval(checkConsent, 500);
-
-    return () => clearInterval(intervalId);
+    // Check for Cookiebot consent
+    if (window.Cookiebot && window.Cookiebot.consents && window.Cookiebot.consents.statistics) {
+      initGrowthBook();
+    } else {
+      // Listen for Cookiebot consent event
+      window.addEventListener('CookiebotOnAccept', () => {
+        if (window.Cookiebot.consents.statistics) {
+          initGrowthBook();
+        }
+      });
+    }
   }, []);
 
-  useEffect(() => {
-    if (hasConsent && !isGrowthBookInitialized) {
-      // Initialize GrowthBook once consent is granted
-      const gaCookie = document.cookie
-        .split("; ")
-        .find(row => row.startsWith("_ga="));
-      const user_pseudo_id = gaCookie ? gaCookie.split(".").slice(-2).join(".") : 'default_id';
-
-      gb.setAttributes({ user_pseudo_id });
-      gb.init({ streaming: true });
-
-      setIsGrowthBookInitialized(true);
-    }
-  }, [hasConsent, isGrowthBookInitialized]);
-
-  if (!isGrowthBookInitialized) {
+  // Render children directly if GrowthBook is not yet initialized
+  if (!gb) {
     return <div>Loading...</div>;
   }
+
+  return (
+    <GrowthBookProvider growthbook={gb}>
+      {children}
+    </GrowthBookProvider>
+  );
+};
+
+export default function App() {
+  return (
+    <GrowthBookWrapper>
+      <div className="App">
+        <header className="App-header">
+          <img src={logo} className="App-logo" alt="logo" />
+          <h1>hello my name is nick</h1>
+          <CTAButton />
+        </header>
+      </div>
+    </GrowthBookWrapper>
+  );
+}
 
 function CTAButton() {
   const isBuyNowEnabled = useFeatureIsOn("buy-now-atc");
