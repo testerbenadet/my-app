@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
-import logo from './logo.svg'; // Importing the logo
-import './App.css'; // Importing the CSS file
-import { GrowthBook, GrowthBookProvider, useFeatureIsOn } from "@growthbook/growthbook-react";
+import React, { useEffect, useState } from 'react';
+import { GrowthBook, GrowthBookProvider, useFeatureIsOn } from '@growthbook/growthbook-react';
+import logo from './logo.svg';
+import './App.css';
 
 // Utility function to get _ga cookie value
 const getGACookie = () => {
@@ -9,44 +9,83 @@ const getGACookie = () => {
     .split("; ")
     .find(row => row.startsWith("_ga="));
   if (gaCookie) {
-    // _ga cookie format is GA1.2.123456789.987654321
     const parts = gaCookie.split(".");
-    return parts.slice(-2).join("."); // Return the last two parts as user_pseudo_id
+    return parts.slice(-2).join(".");
   }
   return null;
 };
 
-// Create a GrowthBook instance
-const gb = new GrowthBook({
-  apiHost: "https://cdn.growthbook.io",
-  clientKey: "sdk-kBW0vcs9lDPHZcsS", // Replace with your actual client key
-  enableDevMode: true,
-  // Tracking callback to log experiment results
-    trackingCallback: (experiment, result) => {
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({
-      event: "experiment_viewed",  // Custom event name for GTM
-      experiment_id: experiment.key,
-      variation_id: result.key,
-    });
-  },
-});
+// Function to check CookieConsent for statistics consent
+const hasStatisticsConsent = () => {
+  const consentCookie = document.cookie
+    .split("; ")
+    .find(row => row.startsWith("CookieConsent="));
 
-// Initialize GrowthBook with optional streaming updates
-gb.init({
-  streaming: true,
-});
+  if (consentCookie) {
+    const cookieValue = decodeURIComponent(consentCookie.split("=")[1]);
+
+    // Convert the cookie string to an object
+    try {
+      const consentData = JSON.parse(cookieValue.replace(/'/g, '"')); // Convert single to double quotes
+
+      return consentData.statistics === true;
+    } catch (error) {
+      console.error("Error parsing CookieConsent:", error);
+      return false;
+    }
+  }
+  return false;
+};
 
 export default function App() {
-  useEffect(() => {
-    // Get the user_pseudo_id from the _ga cookie
-    const user_pseudo_id = getGACookie();
+  const [gb, setGb] = useState(null); // State to store GrowthBook instance
 
-    // Set user attributes for targeting, including user_pseudo_id if available
-    gb.setAttributes({
-      user_pseudo_id: user_pseudo_id || 'default_id', // Use default if _ga not set
-    });
-  }, []); // Empty dependency array to run once on mount
+  useEffect(() => {
+    const initGrowthBook = () => {
+      console.log("Initializing GrowthBook...");
+      const growthbook = new GrowthBook({
+        apiHost: "https://cdn.growthbook.io",
+        clientKey: "sdk-kBW0vcs9lDPHZcsS", // Replace with your actual client key
+        enableDevMode: true,
+        trackingCallback: (experiment, result) => {
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({
+            event: "experiment_viewed",
+            experiment_id: experiment.key,
+            variation_id: result.key,
+          });
+        }
+      });
+
+      const user_pseudo_id = getGACookie() || 'default_id';
+      growthbook.setAttributes({ user_pseudo_id });
+
+      growthbook.loadFeatures().then(() => {
+        console.log("Features loaded and GrowthBook initialized.");
+        setGb(growthbook); // Store initialized GrowthBook instance in state
+      });
+    };
+
+    // Check for statistics consent
+    if (hasStatisticsConsent()) {
+      console.log("Statistics consent given. Initializing GrowthBook.");
+      initGrowthBook();
+    } else {
+      // Poll for consent status every 500 ms until consent is granted
+      const intervalId = setInterval(() => {
+        if (hasStatisticsConsent()) {
+          console.log("Statistics consent now given. Initializing GrowthBook.");
+          initGrowthBook();
+          clearInterval(intervalId); // Stop polling after initializing
+        }
+      }, 500);
+      return () => clearInterval(intervalId); // Cleanup interval on unmount
+    }
+  }, []);
+
+  if (!gb) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <GrowthBookProvider growthbook={gb}>
