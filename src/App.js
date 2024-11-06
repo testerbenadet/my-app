@@ -43,16 +43,20 @@ const GrowthBookWrapper = ({ children }) => {
       });
     };
 
-    // Check for Cookiebot consent
-    if (window.Cookiebot && window.Cookiebot.consents && window.Cookiebot.consents.statistics) {
+    // Check for CookieControl consent
+    if (window.CookieControl && window.CookieControl.Cookie && window.CookieControl.Cookie.consented) {
       initGrowthBook();
     } else {
-      // Listen for Cookiebot consent event
-      window.addEventListener('CookiebotOnAccept', () => {
-        if (window.Cookiebot.consents.statistics) {
+      // Listen for consent changes in CookieControl
+      const consentListener = () => {
+        if (window.CookieControl.Cookie.consented) {
           initGrowthBook();
         }
-      });
+      };
+      window.addEventListener('CookieConsentUpdate', consentListener);
+
+      // Clean up listener when component unmounts
+      return () => window.removeEventListener('CookieConsentUpdate', consentListener);
     }
   }, []);
 
