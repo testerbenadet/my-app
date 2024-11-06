@@ -35,7 +35,6 @@ export default function App() {
 
   useEffect(() => {
     const initializeGrowthBook = () => {
-      // Only initialize if consent has been given
       const user_pseudo_id = getGACookie();
       gb.setAttributes({
         user_pseudo_id: user_pseudo_id || 'default_id',
@@ -58,10 +57,8 @@ export default function App() {
       }
     };
 
-    // Delay the check by 1 second to allow GTM to load Cookiebot
     setTimeout(checkCookiebot, 1000);
 
-    // Listener for future consent updates
     window.addEventListener("CookieConsentUpdate", checkCookiebot);
 
     return () => {
@@ -69,8 +66,13 @@ export default function App() {
     };
   }, [isGrowthBookInitialized]);
 
+  if (!isGrowthBookInitialized) {
+    // Show a loading message until GrowthBook is initialized
+    return <div>Loading...</div>;
+  }
+
   return (
-    <GrowthBookProvider growthbook={isGrowthBookInitialized ? gb : null}>
+    <GrowthBookProvider growthbook={gb}>
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
