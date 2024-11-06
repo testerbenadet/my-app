@@ -20,10 +20,10 @@ const hasStatisticsConsent = () => {
   const consentCookie = document.cookie
     .split("; ")
     .find(row => row.startsWith("CookieConsent="));
-
+console.log(consentCookie)
   if (consentCookie) {
     const cookieValue = consentCookie.split("=")[1];
-
+console.log('abbas')
     // Manually parse the cookie string to check if statistics is true
     const consentParts = cookieValue.split(',');
     const consentObject = {};
@@ -32,7 +32,8 @@ const hasStatisticsConsent = () => {
       const [key, value] = part.split(':');
       const cleanKey = key.replace(/[{}'"]/g, '').trim();
       const cleanValue = value.replace(/[{}'"]/g, '').trim();
-
+console.log(key, value)
+      console.log(cleanKey, cleanValue)
       // Convert "true" and "false" to boolean values
       consentObject[cleanKey] = cleanValue === 'true' ? true : cleanValue === 'false' ? false : cleanValue;
     });
