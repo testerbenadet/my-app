@@ -45,4 +45,59 @@ export default function App() {
         streaming: true,
       });
 
-      setIsGrowthBookInitialized(true); // Mark GrowthBook
+      setIsGrowthBookInitialized(true); // Mark GrowthBook as initialized
+    };
+
+    const checkCookiebot = () => {
+      if (window.Cookiebot && window.Cookiebot.consents) {
+        const consentGiven = window.Cookiebot.consents.analytics;
+
+        if (consentGiven && !isGrowthBookInitialized) {
+          initializeGrowthBook();
+        }
+      }
+    };
+
+    // Delay the check by 1 second to allow GTM to load Cookiebot
+    setTimeout(checkCookiebot, 1000);
+
+    // Listener for future consent updates
+    window.addEventListener("CookieConsentUpdate", checkCookiebot);
+
+    return () => {
+      window.removeEventListener("CookieConsentUpdate", checkCookiebot);
+    };
+  }, [isGrowthBookInitialized]);
+
+  return (
+    <GrowthBookProvider growthbook={isGrowthBookInitialized ? gb : null}>
+      <div className="App">
+        <header className="App-header">
+          <img src={logo} className="App-logo" alt="logo" />
+          <h1>hello my name is nick</h1>
+          <CTAButton />
+        </header>
+      </div>
+    </GrowthBookProvider>
+  );
+}
+
+function CTAButton() {
+  const isBuyNowEnabled = useFeatureIsOn("buy-now-atc");
+
+  return (
+    <button
+      className="cta-button"
+      onClick={() => {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: "addToCartClick",
+          buttonText: isBuyNowEnabled ? "Buy Now!" : "Add to Cart",
+          pagePath: window.location.pathname,
+        });
+      }}
+    >
+      {isBuyNowEnabled ? "Buy Now!" : "Add to Cart"}
+    </button>
+  );
+}
