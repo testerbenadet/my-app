@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import logo from './logo.svg'; // Importing the logo
-import './App.css'; // Importing the CSS file
+import logo from './logo.svg';
+import './App.css';
 import { GrowthBook, GrowthBookProvider, useFeatureIsOn } from "@growthbook/growthbook-react";
 
 // Utility function to get _ga cookie value
@@ -9,9 +9,8 @@ const getGACookie = () => {
     .split("; ")
     .find(row => row.startsWith("_ga="));
   if (gaCookie) {
-    // _ga cookie format is GA1.2.123456789.987654321
     const parts = gaCookie.split(".");
-    return parts.slice(-2).join("."); // Return the last two parts as user_pseudo_id
+    return parts.slice(-2).join(".");
   }
   return null;
 };
@@ -19,13 +18,12 @@ const getGACookie = () => {
 // Create a GrowthBook instance but don't initialize it immediately
 const gb = new GrowthBook({
   apiHost: "https://cdn.growthbook.io",
-  clientKey: "sdk-kBW0vcs9lDPHZcsS", // Replace with your actual client key
+  clientKey: "sdk-kBW0vcs9lDPHZcsS",
   enableDevMode: true,
-  // Tracking callback to log experiment results
   trackingCallback: (experiment, result) => {
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({
-      event: "experiment_viewed",  // Custom event name for GTM
+      event: "experiment_viewed",
       experiment_id: experiment.key,
       variation_id: result.key,
     });
@@ -36,39 +34,38 @@ export default function App() {
   const [isConsentGiven, setIsConsentGiven] = useState(false);
 
   useEffect(() => {
-    // Check if consent for analytics has already been given on load
-    const checkConsent = () => {
-      const consentGiven = Cookiebot && Cookiebot.consents && Cookiebot.consents.analytics;
-      setIsConsentGiven(consentGiven);
+    const checkCookiebotConsent = () => {
+      // Check if Cookiebot exists and if analytics consent is given
+      if (window.Cookiebot && window.Cookiebot.consents) {
+        const consentGiven = window.Cookiebot.consents.analytics;
+        setIsConsentGiven(consentGiven);
+        return true;
+      }
+      return false;
     };
 
-    // Event listener for consent updates from Cookiebot
-    window.addEventListener("CookieConsentUpdate", checkConsent);
+    // Polling function to check for Cookiebot availability
+    const intervalId = setInterval(() => {
+      if (checkCookiebotConsent()) {
+        clearInterval(intervalId); // Stop polling once consent is confirmed
+      }
+    }, 500); // Check every 500ms
 
-    // Check consent on mount
-    checkConsent();
-
-    return () => {
-      window.removeEventListener("CookieConsentUpdate", checkConsent);
-    };
+    return () => clearInterval(intervalId);
   }, []);
 
   useEffect(() => {
     if (isConsentGiven) {
-      // Only initialize GrowthBook when consent is given
       const user_pseudo_id = getGACookie();
-
-      // Set user attributes for targeting, including user_pseudo_id if available
       gb.setAttributes({
-        user_pseudo_id: user_pseudo_id || 'default_id', // Use default if _ga not set
+        user_pseudo_id: user_pseudo_id || 'default_id',
       });
 
-      // Initialize GrowthBook after consent
       gb.init({
         streaming: true,
       });
     }
-  }, [isConsentGiven]); // Re-run if consent status changes
+  }, [isConsentGiven]);
 
   return (
     <GrowthBookProvider growthbook={isConsentGiven ? gb : null}>
