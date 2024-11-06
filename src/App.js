@@ -15,12 +15,12 @@ const getGACookie = () => {
   return null;
 };
 
-// GrowthBookWrapper component
-const GrowthBookWrapper = ({ children }) => {
-  const [gb, setGb] = useState(null);
+export default function App() {
+  const [gb, setGb] = useState(null); // State to store GrowthBook instance
 
   useEffect(() => {
     const initGrowthBook = () => {
+      console.log("Initializing GrowthBook...");
       const growthbook = new GrowthBook({
         apiHost: "https://cdn.growthbook.io",
         clientKey: "sdk-kBW0vcs9lDPHZcsS", // Replace with your actual client key
@@ -39,42 +39,38 @@ const GrowthBookWrapper = ({ children }) => {
       growthbook.setAttributes({ user_pseudo_id });
 
       growthbook.loadFeatures().then(() => {
-        setGb(growthbook);
+        console.log("Features loaded and GrowthBook initialized.");
+        setGb(growthbook); // Store initialized GrowthBook instance in state
       });
     };
 
-    // Check for CookieControl consent
+    // Check if CookieControl is present and consent is already granted
     if (window.CookieControl && window.CookieControl.Cookie && window.CookieControl.Cookie.consented) {
+      console.log("Consent already given. Initializing GrowthBook.");
       initGrowthBook();
     } else {
-      // Listen for consent changes in CookieControl
-      const consentListener = () => {
+      // Listen for consent updates from CookieControl
+      const handleConsentUpdate = () => {
         if (window.CookieControl.Cookie.consented) {
+          console.log("Consent granted via CookieControl. Initializing GrowthBook.");
           initGrowthBook();
         }
       };
-      window.addEventListener('CookieConsentUpdate', consentListener);
 
-      // Clean up listener when component unmounts
-      return () => window.removeEventListener('CookieConsentUpdate', consentListener);
+      window.addEventListener('CookieConsentUpdate', handleConsentUpdate);
+
+      // Clean up event listener on unmount
+      return () => window.removeEventListener('CookieConsentUpdate', handleConsentUpdate);
     }
   }, []);
 
-  // Render children directly if GrowthBook is not yet initialized
+  // Display a loading message until GrowthBook is initialized
   if (!gb) {
     return <div>Loading...</div>;
   }
 
   return (
     <GrowthBookProvider growthbook={gb}>
-      {children}
-    </GrowthBookProvider>
-  );
-};
-
-export default function App() {
-  return (
-    <GrowthBookWrapper>
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
@@ -82,7 +78,7 @@ export default function App() {
           <CTAButton />
         </header>
       </div>
-    </GrowthBookWrapper>
+    </GrowthBookProvider>
   );
 }
 
