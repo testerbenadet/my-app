@@ -17,33 +17,20 @@ const getGACookie = () => {
 };
 
 // Create a GrowthBook instance
-/* global Cookiebot */
-let gb;  // Declare gb at a higher scope so it's accessible
-
-function setupGrowthBook() {
-  const gbFeaturesCache = new GrowthBook({
-    apiHost: "https://cdn.growthbook.io",
-    clientKey: "sdk-kBW0vcs9lDPHZcsS",
-    enableDevMode: true,
-    trackingCallback: (experiment, result) => {  // Inline trackingCallback function
-      window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push({
-        event: "experiment_viewed",  // Custom event name for GTM
-        experiment_id: experiment.key,
-        variation_id: result.key,
-      });
-    },
-  });
-  gbFeaturesCache.loadFeatures();
-}
-
-function initializeGrowthBook() {
-  if (window.Cookiebot && Cookiebot.consent && Cookiebot.consent.statistics()) {
-    setupGrowthBook();
-  } else {
-    console.warn("User has not consented to feature initialization.");
-  }
-}
+const gb = new GrowthBook({
+  apiHost: "https://cdn.growthbook.io",
+  clientKey: "sdk-kBW0vcs9lDPHZcsS", // Replace with your actual client key
+  enableDevMode: true,
+  // Tracking callback to log experiment results
+    trackingCallback: (experiment, result) => {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: "experiment_viewed",  // Custom event name for GTM
+      experiment_id: experiment.key,
+      variation_id: result.key,
+    });
+  },
+});
 
 // Initialize GrowthBook with optional streaming updates
 gb.init({
