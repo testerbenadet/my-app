@@ -18,10 +18,13 @@ const getGACookie = () => {
 // Function to check if "statistics:true" is in CookieConsent cookie
 const hasStatisticsConsent = () => {
   const consentCookie = document.cookie
+    .split("; ")
+    .find(row => row.startsWith("CookieConsent="));
 
   if (consentCookie) {
-    console.log("Raw Cookie Value:", consentCookie); // For debugging
-    return consentCookie.includes("statistics:true"); // Check for "statistics:true"
+    const cookieValue = consentCookie.split("=")[1];
+    console.log("Raw Cookie Value:", cookieValue); // For debugging
+    return cookieValue.includes("statistics:true"); // Check for "statistics:true"
   }
   return false;
 };
@@ -73,13 +76,7 @@ export default function App() {
   }, []);
 
   if (!gb) {
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1>hello my name is nick</h1>
-          <CTAButton />
-        </header>
-      </div>
+    return <div>Loading...</div>;
   }
 
   return (
