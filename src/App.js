@@ -35,6 +35,7 @@ export default function App() {
 
   useEffect(() => {
     const initializeGrowthBook = () => {
+      console.log("Initializing GrowthBook");
       const user_pseudo_id = getGACookie();
       gb.setAttributes({
         user_pseudo_id: user_pseudo_id || 'default_id',
@@ -48,26 +49,33 @@ export default function App() {
     };
 
     const checkCookiebot = () => {
-      if (window.Cookiebot && window.Cookiebot.consents) {
-        const consentGiven = window.Cookiebot.consents.analytics;
+      if (window.Cookiebot) {
+        console.log("Cookiebot detected");
+        const consentGiven = window.Cookiebot.consents && window.Cookiebot.consents.analytics;
 
-        if (consentGiven && !isGrowthBookInitialized) {
+        if (consentGiven) {
+          console.log("Consent given for analytics cookies");
           initializeGrowthBook();
+        } else {
+          console.log("Consent not yet given");
         }
+      } else {
+        console.log("Cookiebot not detected");
       }
     };
 
+    // Delay the check by 1 second to allow GTM to load Cookiebot
     setTimeout(checkCookiebot, 1000);
 
+    // Listener for future consent updates
     window.addEventListener("CookieConsentUpdate", checkCookiebot);
 
     return () => {
       window.removeEventListener("CookieConsentUpdate", checkCookiebot);
     };
-  }, [isGrowthBookInitialized]);
+  }, []);
 
   if (!isGrowthBookInitialized) {
-    // Show a loading message until GrowthBook is initialized
     return <div>Loading...</div>;
   }
 
