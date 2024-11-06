@@ -48,24 +48,19 @@ export default function App() {
       setIsGrowthBookInitialized(true); // Mark GrowthBook as initialized
     };
 
-const checkConsentStatus = () => {
-  if (window.CookieControl) {
-    console.log("CookieControl object:", window.CookieControl);
-
-    // Adjust this condition based on the console log output
-    if (
-      window.CookieControl.cookie && // Update this line as needed
-      window.CookieControl.cookie.consent === true
-    ) {
-      console.log("Consent given for analytics cookies");
-      initializeGrowthBook();
-    } else {
-      console.log("Waiting for consent...");
-    }
-  } else {
-    console.log("CookieControl not yet available...");
-  }
-};
+    const checkConsentStatus = () => {
+      if (
+        window.Cookiebot &&
+        window.Cookiebot.consents &&
+        window.Cookiebot.consents["CookieConsent"] &&
+        window.Cookiebot.consents["CookieConsent"].consented === true
+      ) {
+        console.log("Consent given for analytics cookies");
+        initializeGrowthBook();
+      } else {
+        console.log("Waiting for consent...");
+      }
+    };
 
     // Poll for consent status every 500 ms until consent is granted
     const intervalId = setInterval(() => {
