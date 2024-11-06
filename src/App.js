@@ -37,7 +37,7 @@ console.log(key, value)
       // Convert "true" and "false" to boolean values
       consentObject[cleanKey] = cleanValue === 'true' ? true : cleanValue === 'false' ? false : cleanValue;
     });
-
+console.log(consentObject.statistics)
     return consentObject.statistics === true;
   }
   return false;
