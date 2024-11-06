@@ -73,7 +73,16 @@ export default function App() {
   }, []);
 
   if (!gb) {
-    return <div>Loading...</div>;
+    <GrowthBookProvider growthbook={gb}>
+      <div className="App">
+        <header className="App-header">
+          <img src={logo} className="App-logo" alt="logo" />
+          <h1>hello my name is nick</h1>
+          <CTAButton />
+        </header>
+      </div>
+    </GrowthBookProvider>
+     );
   }
 
   return (
