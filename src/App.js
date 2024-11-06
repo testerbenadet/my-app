@@ -3,7 +3,7 @@ import { GrowthBook, GrowthBookProvider, useFeatureIsOn } from '@growthbook/grow
 import logo from './logo.svg';
 import './App.css';
 
-// Utility function to get _ga cookie value
+// Function to get _ga cookie value
 const getGACookie = () => {
   const gaCookie = document.cookie
     .split("; ")
@@ -15,30 +15,16 @@ const getGACookie = () => {
   return null;
 };
 
-// Function to parse CookieConsent and check for statistics consent
+// Function to check if "statistics:true" is in CookieConsent cookie
 const hasStatisticsConsent = () => {
   const consentCookie = document.cookie
     .split("; ")
     .find(row => row.startsWith("CookieConsent="));
-console.log(consentCookie)
+
   if (consentCookie) {
     const cookieValue = consentCookie.split("=")[1];
-console.log('abbas')
-    // Manually parse the cookie string to check if statistics is true
-    const consentParts = cookieValue.split(',');
-    const consentObject = {};
-
-    consentParts.forEach(part => {
-      const [key, value] = part.split(':');
-      const cleanKey = key.replace(/[{}'"]/g, '').trim();
-      const cleanValue = value.replace(/[{}'"]/g, '').trim();
-console.log(key, value)
-      console.log(cleanKey, cleanValue)
-      // Convert "true" and "false" to boolean values
-      consentObject[cleanKey] = cleanValue === 'true' ? true : cleanValue === 'false' ? false : cleanValue;
-    });
-console.log(consentObject.statistics)
-    return consentObject.statistics === true;
+    console.log("Raw Cookie Value:", cookieValue); // For debugging
+    return cookieValue.includes("statistics:true"); // Check for "statistics:true"
   }
   return false;
 };
