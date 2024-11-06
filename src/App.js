@@ -82,7 +82,6 @@ export default function App() {
         </header>
       </div>
     </GrowthBookProvider>
-     );
   }
 
   return (
