@@ -42,10 +42,14 @@ function useGrowthBook() {
       });
 
       const user_pseudo_id = getGACookie() || 'default_id';
-      // Set attributes including the admin attribute
+            // Access the user's IP address from the injected global variable
+      const userIp = window.USER_IP_ADDRESS || '';
+      const isAdmin = userIp === '52.19.15.25'; // Replace with your admin IP address
+
+      // Set attributes, including the admin attribute
       growthbook.setAttributes({
         user_pseudo_id,
-        admin: '52.19.15.25',
+        admin: isAdmin,
       });
 
       growthbook.loadFeatures().then(() => {
