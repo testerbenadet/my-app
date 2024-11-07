@@ -3,31 +3,10 @@ import { GrowthBook, GrowthBookProvider, useFeatureIsOn } from '@growthbook/grow
 import logo from './logo.svg';
 import './App.css';
 
-// Function to get _ga cookie value
-const getGACookie = () => {
-  const gaCookie = document.cookie
-    .split("; ")
-    .find(row => row.startsWith("_ga="));
-  if (gaCookie) {
-    const parts = gaCookie.split(".");
-    return parts.slice(-2).join(".");
-  }
-  return null;
-};
-
-// Function to check if "statistics:true" is in CookieConsent cookie
-const hasStatisticsConsent = () => {
-  const consentCookie = document.cookie
-
-  if (consentCookie) {
-    console.log("Raw Cookie Value:", consentCookie); // For debugging
-    return consentCookie.includes("statistics:true"); // Check for "statistics:true"
-  }
-  return false;
-};
+// ... (other functions remain the same)
 
 export default function App() {
-  const [gb, setGb] = useState(null); // State to store GrowthBook instance
+  const [gb, setGb] = useState(new GrowthBook()); // Initialize with default GrowthBook instance
 
   useEffect(() => {
     const initGrowthBook = () => {
@@ -51,7 +30,7 @@ export default function App() {
 
       growthbook.loadFeatures().then(() => {
         console.log("Features loaded and GrowthBook initialized.");
-        setGb(growthbook); // Store initialized GrowthBook instance in state
+        setGb(growthbook); // Update the GrowthBook instance
       });
     };
 
@@ -72,10 +51,7 @@ export default function App() {
     }
   }, []);
 
-  if (!gb) {
-    return <div>Loading...</div>;
-  }
-
+  // Remove the conditional rendering
   return (
     <GrowthBookProvider growthbook={gb}>
       <div className="App">
