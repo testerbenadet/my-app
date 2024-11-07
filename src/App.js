@@ -3,7 +3,28 @@ import { GrowthBook, GrowthBookProvider, useFeatureIsOn } from '@growthbook/grow
 import logo from './logo.svg';
 import './App.css';
 
-// ... (other functions remain the same)
+// Function to get _ga cookie value
+const getGACookie = () => {
+  const gaCookie = document.cookie
+    .split("; ")
+    .find(row => row.startsWith("_ga="));
+  if (gaCookie) {
+    const parts = gaCookie.split(".");
+    return parts.slice(-2).join(".");
+  }
+  return null;
+};
+
+// Function to check if "statistics:true" is in CookieConsent cookie
+const hasStatisticsConsent = () => {
+  const consentCookie = document.cookie;
+
+  if (consentCookie) {
+    console.log("Raw Cookie Value:", consentCookie); // For debugging
+    return consentCookie.includes("statistics:true"); // Check for "statistics:true"
+  }
+  return false;
+};
 
 export default function App() {
   const [gb, setGb] = useState(new GrowthBook()); // Initialize with default GrowthBook instance
@@ -22,7 +43,7 @@ export default function App() {
             experiment_id: experiment.key,
             variation_id: result.key,
           });
-        }
+        },
       });
 
       const user_pseudo_id = getGACookie() || 'default_id';
