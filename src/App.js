@@ -20,7 +20,6 @@ const hasStatisticsConsent = () => {
   const consentCookie = document.cookie;
 
   if (consentCookie) {
-    console.log("Raw Cookie Value:", consentCookie); // For debugging
     return consentCookie.includes("statistics:true"); // Check for "statistics:true"
   }
   return false;
@@ -31,7 +30,6 @@ export default function App() {
 
   useEffect(() => {
     const initGrowthBook = () => {
-      console.log("Initializing GrowthBook...");
       const growthbook = new GrowthBook({
         apiHost: "https://cdn.growthbook.io",
         clientKey: "sdk-kBW0vcs9lDPHZcsS", // Replace with your actual client key
@@ -50,20 +48,17 @@ export default function App() {
       growthbook.setAttributes({ user_pseudo_id });
 
       growthbook.loadFeatures().then(() => {
-        console.log("Features loaded and GrowthBook initialized.");
         setGb(growthbook); // Update the GrowthBook instance
       });
     };
 
     // Check for statistics consent
     if (hasStatisticsConsent()) {
-      console.log("Statistics consent given. Initializing GrowthBook.");
       initGrowthBook();
     } else {
       // Poll for consent status every 500 ms until consent is granted
       const intervalId = setInterval(() => {
         if (hasStatisticsConsent()) {
-          console.log("Statistics consent now given. Initializing GrowthBook.");
           initGrowthBook();
           clearInterval(intervalId); // Stop polling after initializing
         }
@@ -72,7 +67,6 @@ export default function App() {
     }
   }, []);
 
-  // Remove the conditional rendering
   return (
     <GrowthBookProvider growthbook={gb}>
       <div className="App">
