@@ -42,38 +42,16 @@ function useGrowthBook() {
       });
 
       const user_pseudo_id = getGACookie() || 'default_id';
-  
-  // Fetch the user's IP address after consent
-  fetch('https://api.ipify.org?format=json')
-    .then((response) => response.json())
-    .then((data) => {
-      const userIp = data.ip;
-      console.log('Fetched User IP:', userIp);
-      const isAdmin = userIp === '52.19.15.25'; // Replace with your admin IP
 
+      // Set attributes
       growthbook.setAttributes({
         user_pseudo_id,
-        admin: isAdmin,
       });
 
       growthbook.loadFeatures().then(() => {
-        setGb(growthbook);
+        setGb(growthbook); // Update the GrowthBook instance with loaded features
       });
-    })
-    .catch((error) => {
-      console.error('Error fetching IP address:', error);
-
-      // Fallback attributes
-      growthbook.setAttributes({
-        user_pseudo_id,
-        admin: false,
-      });
-
-      growthbook.loadFeatures().then(() => {
-        setGb(growthbook);
-      });
-    });
-};
+    };
 
     // Function to handle consent acceptance
     const onConsentAccepted = () => {
