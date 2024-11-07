@@ -1,43 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { GrowthBook, GrowthBookProvider, useFeatureIsOn } from '@growthbook/growthbook-react';
 import logo from './logo.svg';
 import './App.css';
 
-// Function to get _ga cookie value
-const getGACookie = () => {
-  const gaCookie = document.cookie
-    .split("; ")
-    .find(row => row.startsWith("_ga="));
-  if (gaCookie) {
-    const parts = gaCookie.split(".");
-    return parts.slice(-2).join(".");
-  }
-  return null;
-};
+function useGrowthBook() {
+  const [gb, setGb] = React.useState(() => new GrowthBook());
 
-// Function to check if "statistics:true" is in CookieConsent cookie
-const hasStatisticsConsent = () => {
-  const consentCookie = document.cookie;
+  React.useEffect(() => {
+    // Helper function to get the _ga cookie value
+    const getGACookie = () => {
+      const gaCookie = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('_ga='));
+      if (gaCookie) {
+        const parts = gaCookie.split('.');
+        return parts.slice(-2).join('.');
+      }
+      return null;
+    };
 
-  if (consentCookie) {
-    return consentCookie.includes("statistics:true"); // Check for "statistics:true"
-  }
-  return false;
-};
+    // Helper function to check if "statistics:true" is in the consent cookie
+    const hasStatisticsConsent = () => {
+      const consentCookie = document.cookie;
+      return consentCookie && consentCookie.includes('statistics:true');
+    };
 
-export default function App() {
-  const [gb, setGb] = useState(new GrowthBook()); // Initialize with default GrowthBook instance
-
-  useEffect(() => {
+    // Function to initialize GrowthBook
     const initGrowthBook = () => {
       const growthbook = new GrowthBook({
-        apiHost: "https://cdn.growthbook.io",
-        clientKey: "sdk-kBW0vcs9lDPHZcsS", // Replace with your actual client key
+        apiHost: 'https://cdn.growthbook.io',
+        clientKey: 'sdk-kBW0vcs9lDPHZcsS', // Replace with your actual client key
         enableDevMode: true,
         trackingCallback: (experiment, result) => {
           window.dataLayer = window.dataLayer || [];
           window.dataLayer.push({
-            event: "experiment_viewed",
+            event: 'experiment_viewed',
             experiment_id: experiment.key,
             variation_id: result.key,
           });
@@ -48,31 +45,48 @@ export default function App() {
       growthbook.setAttributes({ user_pseudo_id });
 
       growthbook.loadFeatures().then(() => {
-        setGb(growthbook); // Update the GrowthBook instance
+        setGb(growthbook); // Update the GrowthBook instance with loaded features
       });
     };
 
-    // Check for statistics consent
-    if (hasStatisticsConsent()) {
-      initGrowthBook();
-    } else {
-      // Poll for consent status every 500 ms until consent is granted
-      const intervalId = setInterval(() => {
-        if (hasStatisticsConsent()) {
-          initGrowthBook();
-          clearInterval(intervalId); // Stop polling after initializing
-        }
-      }, 500);
-      return () => clearInterval(intervalId); // Cleanup interval on unmount
-    }
+    // Function to handle consent acceptance
+    const onConsentAccepted = () => {
+      if (hasStatisticsConsent()) {
+        initGrowthBook();
+      }
+    };
+
+    // Function to handle consent decline
+    const onConsentDeclined = () => {
+      // Reset GrowthBook to a default instance without features
+      setGb(new GrowthBook());
+    };
+
+    // Add event listeners for Cookiebot events
+    window.addEventListener('CookiebotOnConsentReady', onConsentAccepted);
+    window.addEventListener('CookiebotOnAccept', onConsentAccepted);
+    window.addEventListener('CookiebotOnDecline', onConsentDeclined);
+
+    // Cleanup event listeners on component unmount
+    return () => {
+      window.removeEventListener('CookiebotOnConsentReady', onConsentAccepted);
+      window.removeEventListener('CookiebotOnAccept', onConsentAccepted);
+      window.removeEventListener('CookiebotOnDecline', onConsentDeclined);
+    };
   }, []);
+
+  return gb; // Return the GrowthBook instance
+}
+
+export default function App() {
+  const gb = useGrowthBook(); // Use the custom hook to get the GrowthBook instance
 
   return (
     <GrowthBookProvider growthbook={gb}>
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <h1>hello my name is nick</h1>
+          <h1>Hello, my name is Nick</h1>
           <CTAButton />
         </header>
       </div>
@@ -81,21 +95,22 @@ export default function App() {
 }
 
 function CTAButton() {
-  const isBuyNowEnabled = useFeatureIsOn("buy-now-atc");
+  // Get the feature flag status
+  const isBuyNowEnabled = useFeatureIsOn('buy-now-atc');
+
+  // Click handler
+  const handleClick = () => {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'addToCartClick',
+      buttonText: isBuyNowEnabled ? 'Buy Now!' : 'Add to Cart',
+      pagePath: window.location.pathname,
+    });
+  };
 
   return (
-    <button
-      className="cta-button"
-      onClick={() => {
-        window.dataLayer = window.dataLayer || [];
-        window.dataLayer.push({
-          event: "addToCartClick",
-          buttonText: isBuyNowEnabled ? "Buy Now!" : "Add to Cart",
-          pagePath: window.location.pathname,
-        });
-      }}
-    >
-      {isBuyNowEnabled ? "Buy Now!" : "Add to Cart"}
+    <button className="cta-button" onClick={handleClick}>
+      {isBuyNowEnabled ? 'Buy Now!' : 'Add to Cart'}
     </button>
   );
 }
