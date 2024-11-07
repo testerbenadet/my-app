@@ -42,7 +42,11 @@ function useGrowthBook() {
       });
 
       const user_pseudo_id = getGACookie() || 'default_id';
-      growthbook.setAttributes({ user_pseudo_id });
+      // Set attributes including the admin attribute
+      growthbook.setAttributes({
+        user_pseudo_id,
+        admin: '52.19.15.25',
+      });
 
       growthbook.loadFeatures().then(() => {
         setGb(growthbook); // Update the GrowthBook instance with loaded features
