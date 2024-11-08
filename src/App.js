@@ -6,6 +6,7 @@ import './App.css';
 function useGrowthBook() {
   const [gb, setGb] = React.useState(() => new GrowthBook());
   const [initialized, setInitialized] = React.useState(false);
+  const viewedExperiments = React.useRef(new Set()); // Track viewed experiments
 
   React.useEffect(() => {
     const getGACookie = () => {
@@ -28,7 +29,7 @@ function useGrowthBook() {
 
     const initGrowthBook = () => {
       const hasConsent = hasStatisticsConsent();
-      
+
       const growthbook = new GrowthBook({
         apiHost: 'https://cdn.growthbook.io',
         clientKey: 'sdk-kBW0vcs9lDPHZcsS',
@@ -39,13 +40,17 @@ function useGrowthBook() {
       if (hasConsent) {
         // If the user has consented, set tracking callback
         growthbook.setTrackingCallback((experiment, result) => {
-          console.log("Tracking experiment:", experiment.key, "with variation:", result.key); // Log tracking callback execution
-          window.dataLayer = window.dataLayer || [];
-          window.dataLayer.push({
-            event: 'experiment_viewed',
-            experiment_id: experiment.key,
-            variation_id: result.key,
-          });
+          if (!viewedExperiments.current.has(experiment.key)) {
+            console.log("Tracking experiment:", experiment.key, "with variation:", result.key); // Log tracking callback execution
+            viewedExperiments.current.add(experiment.key); // Add experiment to viewed set
+
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+              event: 'experiment_viewed',
+              experiment_id: experiment.key,
+              variation_id: result.key,
+            });
+          }
         });
 
         const user_pseudo_id = getGACookie() || 'default_id';
