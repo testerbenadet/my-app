@@ -6,7 +6,6 @@ import './App.css';
 function useGrowthBook() {
   const [gb, setGb] = React.useState(() => new GrowthBook());
   const [initialized, setInitialized] = React.useState(false); // Tracks if GrowthBook has been initialized
-  const [consentGranted, setConsentGranted] = React.useState(false); // Tracks consent status
 
   React.useEffect(() => {
     const getGACookie = () => {
@@ -51,7 +50,6 @@ function useGrowthBook() {
       if (hasConsent) {
         const user_pseudo_id = getGACookie() || 'default_id';
         growthbook.setAttributes({ user_pseudo_id });
-        setConsentGranted(true); // Update consent status for UI re-render
       } else {
         growthbook.setAttributes({ consent: false });
       }
