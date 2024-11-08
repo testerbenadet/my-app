@@ -23,7 +23,6 @@ function useGrowthBook() {
     const hasStatisticsConsent = () => {
       const consentCookie = document.cookie;
       const hasConsent = consentCookie && consentCookie.includes('statistics:true');
-      console.log("Has statistics consent:", hasConsent); // Log consent status
       return hasConsent;
     };
 
@@ -41,7 +40,6 @@ function useGrowthBook() {
         // If the user has consented, set tracking callback
         growthbook.setTrackingCallback((experiment, result) => {
           if (!viewedExperiments.current.has(experiment.key)) {
-            console.log("Tracking experiment:", experiment.key, "with variation:", result.key); // Log tracking callback execution
             viewedExperiments.current.add(experiment.key); // Add experiment to viewed set
 
             window.dataLayer = window.dataLayer || [];
