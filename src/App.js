@@ -5,9 +5,9 @@ import './App.css';
 
 function useGrowthBook() {
   const [gb, setGb] = React.useState(() => new GrowthBook());
+  const [initialized, setInitialized] = React.useState(false); // Add initialization state
 
   React.useEffect(() => {
-    // Helper function to get the _ga cookie value
     const getGACookie = () => {
       const gaCookie = document.cookie
         .split('; ')
@@ -19,25 +19,22 @@ function useGrowthBook() {
       return null;
     };
 
-    // Helper function to check if "statistics:true" is in the consent cookie
     const hasStatisticsConsent = () => {
       const consentCookie = document.cookie;
       return consentCookie && consentCookie.includes('statistics:true');
     };
 
-    // Function to initialize GrowthBook
     const initGrowthBook = () => {
       const hasConsent = hasStatisticsConsent();
 
       const options = {
         apiHost: 'https://cdn.growthbook.io',
-        clientKey: 'sdk-kBW0vcs9lDPHZcsS', // Replace with your actual client key
+        clientKey: 'sdk-kBW0vcs9lDPHZcsS',
         enableDevMode: true,
-        enabled: hasConsent, // Experiments are only enabled if the user has consented
+        enabled: hasConsent,
       };
 
       if (hasConsent) {
-        // If the user has consented, set tracking callback
         options.trackingCallback = (experiment, result) => {
           window.dataLayer = window.dataLayer || [];
           window.dataLayer.push({
@@ -52,45 +49,39 @@ function useGrowthBook() {
 
       if (hasConsent) {
         const user_pseudo_id = getGACookie() || 'default_id';
-
-        // Set attributes
-        growthbook.setAttributes({
-          user_pseudo_id,
-        });
+        growthbook.setAttributes({ user_pseudo_id });
       } else {
-        // Set attributes to prevent experiment assignment
-        growthbook.setAttributes({
-          consent: false, // Custom attribute to indicate no consent
-        });
+        growthbook.setAttributes({ consent: false });
       }
 
       growthbook.loadFeatures().then(() => {
-        setGb(growthbook); // Update the GrowthBook instance with loaded features
+        setGb(growthbook);
+        setInitialized(true); // Mark GrowthBook as initialized
       });
     };
 
-    // Initialize GrowthBook on component mount
-    initGrowthBook();
+    if (!initialized) {
+      initGrowthBook(); // Initialize only if not already initialized
+    }
 
-    // Function to handle consent changes
     const onConsentChanged = () => {
-      initGrowthBook();
+      if (!initialized || !hasStatisticsConsent()) {
+        initGrowthBook(); // Only reinitialize if not already initialized or if consent is newly granted
+      }
     };
 
-    // Add event listeners for Cookiebot events
     window.addEventListener('CookiebotOnConsentReady', onConsentChanged);
     window.addEventListener('CookiebotOnAccept', onConsentChanged);
     window.addEventListener('CookiebotOnDecline', onConsentChanged);
 
-    // Cleanup event listeners on component unmount
     return () => {
       window.removeEventListener('CookiebotOnConsentReady', onConsentChanged);
       window.removeEventListener('CookiebotOnAccept', onConsentChanged);
       window.removeEventListener('CookiebotOnDecline', onConsentChanged);
     };
-  }, []);
+  }, [initialized]);
 
-  return gb; // Return the GrowthBook instance
+  return gb;
 }
 
 export default function App() {
