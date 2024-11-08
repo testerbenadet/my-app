@@ -24,6 +24,13 @@
   color: white;
 }
 
+.button-container {
+  display: flex;
+  gap: 20px; /* Space between the buttons */
+  justify-content: center; /* Center the buttons horizontally */
+  align-items: center; /* Align buttons vertically */
+}
+
 .cta-button {
   background-color: #4CAF50; /* Green background */
   color: white;              /* White text */
