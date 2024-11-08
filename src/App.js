@@ -97,18 +97,19 @@ export default function App() {
   const gb = useGrowthBook(); // Use the custom hook to get the GrowthBook instance
 
   return (
-    <GrowthBookProvider growthbook={gb}>
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1>Hello, my name is Nick</h1>
+  <GrowthBookProvider growthbook={gb}>
+    <div className="App">
+      <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        <h1>Hello, my name is Nick</h1>
+        <div className="button-container">
           <CTAButton />
           <ReadMoreButton />
-        </header>
-      </div>
-    </GrowthBookProvider>
-  );
-}
+        </div>
+      </header>
+    </div>
+  </GrowthBookProvider>
+)
 
 function CTAButton() {
   const isBuyNowEnabled = useFeatureIsOn('buy-now-atc');
