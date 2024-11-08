@@ -109,7 +109,7 @@ export default function App() {
       </header>
     </div>
   </GrowthBookProvider>
-)
+);
 
 function CTAButton() {
   const isBuyNowEnabled = useFeatureIsOn('buy-now-atc');
