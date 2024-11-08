@@ -5,7 +5,7 @@ import './App.css';
 
 function useGrowthBook() {
   const [gb, setGb] = React.useState(() => new GrowthBook());
-  const [initialized, setInitialized] = React.useState(false); // Tracks if GrowthBook has been initialized
+  const [initialized, setInitialized] = React.useState(false);
 
   React.useEffect(() => {
     const getGACookie = () => {
@@ -21,37 +21,42 @@ function useGrowthBook() {
 
     const hasStatisticsConsent = () => {
       const consentCookie = document.cookie;
-      return consentCookie && consentCookie.includes('statistics:true');
+      const hasConsent = consentCookie && consentCookie.includes('statistics:true');
+      console.log("Has statistics consent:", hasConsent); // Log consent status
+      return hasConsent;
     };
 
     const initGrowthBook = () => {
       const hasConsent = hasStatisticsConsent();
-
-      const options = {
+      
+      const growthbook = new GrowthBook({
         apiHost: 'https://cdn.growthbook.io',
         clientKey: 'sdk-kBW0vcs9lDPHZcsS',
         enableDevMode: true,
-        enabled: hasConsent,
-      };
+        enabled: hasConsent, // Enable experiments based on consent status
+      });
 
       if (hasConsent) {
-        options.trackingCallback = (experiment, result) => {
+        // If the user has consented, set tracking callback
+        growthbook.setTrackingCallback((experiment, result) => {
+          console.log("Tracking experiment:", experiment.key, "with variation:", result.key); // Log tracking callback execution
           window.dataLayer = window.dataLayer || [];
           window.dataLayer.push({
             event: 'experiment_viewed',
             experiment_id: experiment.key,
             variation_id: result.key,
           });
-        };
-      }
+        });
 
-      const growthbook = new GrowthBook(options);
-
-      if (hasConsent) {
         const user_pseudo_id = getGACookie() || 'default_id';
-        growthbook.setAttributes({ user_pseudo_id });
+
+        growthbook.setAttributes({
+          user_pseudo_id,
+        });
       } else {
-        growthbook.setAttributes({ consent: false });
+        growthbook.setAttributes({
+          consent: false,
+        });
       }
 
       growthbook.loadFeatures().then(() => {
@@ -65,9 +70,7 @@ function useGrowthBook() {
     }
 
     const onConsentChanged = () => {
-      if (!initialized || !hasStatisticsConsent()) {
-        initGrowthBook(); // Reinitialize if consent is granted
-      }
+      initGrowthBook(); // Reinitialize GrowthBook on consent change
     };
 
     window.addEventListener('CookiebotOnConsentReady', onConsentChanged);
