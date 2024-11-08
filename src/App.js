@@ -103,6 +103,7 @@ export default function App() {
           <img src={logo} className="App-logo" alt="logo" />
           <h1>Hello, my name is Nick</h1>
           <CTAButton />
+          <ReadMoreButton />
         </header>
       </div>
     </GrowthBookProvider>
@@ -110,10 +111,8 @@ export default function App() {
 }
 
 function CTAButton() {
-  // Get the feature flag status
   const isBuyNowEnabled = useFeatureIsOn('buy-now-atc');
 
-  // Click handler
   const handleClick = () => {
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({
@@ -126,6 +125,27 @@ function CTAButton() {
   return (
     <button className="cta-button" onClick={handleClick}>
       {isBuyNowEnabled ? 'Buy Now!' : 'Add to Cart'}
+    </button>
+  );
+}
+
+function ReadMoreButton() {
+  const isReadMoreEnabled = useFeatureIsOn('read-more');
+
+  const handleReadMoreClick = () => {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'readMoreClick',
+      buttonText: 'Read More',
+      pagePath: window.location.pathname,
+    });
+  };
+
+  if (!isReadMoreEnabled) return null; // Only show if the feature is enabled
+
+  return (
+    <button className="read-more-button" onClick={handleReadMoreClick}>
+      Read More
     </button>
   );
 }
