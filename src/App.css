@@ -40,6 +40,22 @@
   background-color: #45a049; /* Darker green on hover */
 }
 
+.read-more-button {
+  background-color: #4CAF50; /* Green background */
+  color: white;              /* White text */
+  padding: 15px 30px;        /* Button padding */
+  font-size: 18px;           /* Font size */
+  font-weight: bold;         /* Bold text */
+  border: none;              /* No border */
+  border-radius: 8px;        /* Rounded corners */
+  cursor: pointer;           /* Pointer cursor on hover */
+  transition: background-color 0.3s ease; /* Smooth hover transition */
+}
+
+.read-more-button:hover {
+  background-color: #45a049; /* Darker green on hover */
+}
+
 .App-link {
   color: #61dafb;
 }
