@@ -5,7 +5,8 @@ import './App.css';
 
 function useGrowthBook() {
   const [gb, setGb] = React.useState(() => new GrowthBook());
-  const [initialized, setInitialized] = React.useState(false); // Add initialization state
+  const [initialized, setInitialized] = React.useState(false); // Tracks if GrowthBook has been initialized
+  const [consentGranted, setConsentGranted] = React.useState(false); // Tracks consent status
 
   React.useEffect(() => {
     const getGACookie = () => {
@@ -50,12 +51,13 @@ function useGrowthBook() {
       if (hasConsent) {
         const user_pseudo_id = getGACookie() || 'default_id';
         growthbook.setAttributes({ user_pseudo_id });
+        setConsentGranted(true); // Update consent status for UI re-render
       } else {
         growthbook.setAttributes({ consent: false });
       }
 
       growthbook.loadFeatures().then(() => {
-        setGb(growthbook);
+        setGb(growthbook); // Update the GrowthBook instance with loaded features
         setInitialized(true); // Mark GrowthBook as initialized
       });
     };
@@ -66,7 +68,7 @@ function useGrowthBook() {
 
     const onConsentChanged = () => {
       if (!initialized || !hasStatisticsConsent()) {
-        initGrowthBook(); // Only reinitialize if not already initialized or if consent is newly granted
+        initGrowthBook(); // Reinitialize if consent is granted
       }
     };
 
@@ -88,19 +90,19 @@ export default function App() {
   const gb = useGrowthBook(); // Use the custom hook to get the GrowthBook instance
 
   return (
-  <GrowthBookProvider growthbook={gb}>
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <h1>Hello, my name is Nick</h1>
-        <div className="button-container">
-          <CTAButton />
-          <ReadMoreButton />
-        </div>
-      </header>
-    </div>
-  </GrowthBookProvider>
-   );
+    <GrowthBookProvider growthbook={gb}>
+      <div className="App">
+        <header className="App-header">
+          <img src={logo} className="App-logo" alt="logo" />
+          <h1>Hello, my name is Nick</h1>
+          <div className="button-container">
+            <CTAButton />
+            <ReadMoreButton />
+          </div>
+        </header>
+      </div>
+    </GrowthBookProvider>
+  );
 }
 
 function CTAButton() {
