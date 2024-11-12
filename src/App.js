@@ -7,6 +7,7 @@ function useGrowthBook() {
   const [gb, setGb] = React.useState(() => new GrowthBook());
   const [initialized, setInitialized] = React.useState(false);
   const viewedExperiments = React.useRef(new Set()); // Track viewed experiments
+  const dataLayerEventsPushed = React.useRef(new Set()); // Track data layer events
 
   React.useEffect(() => {
     const setUniqueUserIdCookie = () => {
@@ -45,14 +46,15 @@ function useGrowthBook() {
         if (!viewedExperiments.current.has(experiment.key)) {
           viewedExperiments.current.add(experiment.key); // Add experiment to viewed set
 
-          // Only push to data layer if user has consented
-          if (hasStatisticsConsent()) {
+          // Only push to data layer if user has consented and event hasn't been pushed
+          if (hasStatisticsConsent() && !dataLayerEventsPushed.current.has(experiment.key)) {
             window.dataLayer = window.dataLayer || [];
             window.dataLayer.push({
               event: 'experiment_viewed',
               experiment_id: experiment.key,
               variation_id: result.key,
             });
+            dataLayerEventsPushed.current.add(experiment.key); // Mark as pushed
           }
         }
       });
@@ -77,12 +79,15 @@ function useGrowthBook() {
       if (hasStatisticsConsent()) {
         // If consent has been given, re-run the tracking callback for all viewed experiments
         viewedExperiments.current.forEach(experimentKey => {
-          window.dataLayer = window.dataLayer || [];
-          window.dataLayer.push({
-            event: 'experiment_viewed',
-            experiment_id: experimentKey,
-            variation_id: gb.getFeatureValue(experimentKey), // Get the variation ID for the experiment
-          });
+          if (!dataLayerEventsPushed.current.has(experimentKey)) {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+              event: 'experiment_viewed',
+              experiment_id: experimentKey,
+              variation_id: gb.getFeatureValue(experimentKey), // Get the variation ID for the experiment
+            });
+            dataLayerEventsPushed.current.add(experimentKey); // Mark as pushed
+          }
         });
       }
     };
