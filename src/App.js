@@ -8,8 +8,9 @@ function useGrowthBook() {
   const [initialized, setInitialized] = React.useState(false);
 
   React.useEffect(() => {
+    const COOKIE_NAME = 'unique_user_id';
+
     const setPersistentRandomizedCookie = () => {
-      const COOKIE_NAME = 'unique_user_id';
       let cookieValue = document.cookie
         .split('; ')
         .find(row => row.startsWith(`${COOKIE_NAME}=`));
@@ -18,10 +19,13 @@ function useGrowthBook() {
         // Create a unique identifier if the cookie does not exist
         const randomId = `id_${Math.random().toString(36).substring(2, 15)}`;
         document.cookie = `${COOKIE_NAME}=${randomId}; path=/; max-age=31536000`; // 1-year expiration
+        return randomId;
+      } else {
+        return cookieValue.split('=')[1]; // Extract the actual value of the cookie
       }
     };
 
-    setPersistentRandomizedCookie(); // Call function to set the persistent cookie
+    const uniqueUserId = setPersistentRandomizedCookie(); // Get or set the persistent cookie
 
     const initGrowthBook = () => {
       const growthbook = new GrowthBook({
@@ -29,6 +33,13 @@ function useGrowthBook() {
         clientKey: 'sdk-kBW0vcs9lDPHZcsS',
         enableDevMode: true,
         enabled: true,
+      });
+
+      // Setting attributes for GrowthBook, including the unique user ID as "UU"
+      growthbook.setAttributes({
+        loggedIn: false,       // example attribute
+        deviceId: 'web',       // example attribute
+        UU: uniqueUserId,      // Set "UU" attribute to the unique_user_id cookie value
       });
 
       growthbook.loadFeatures().then(() => {
