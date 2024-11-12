@@ -39,15 +39,16 @@ function useGrowthBook() {
         apiHost: 'https://cdn.growthbook.io',
         clientKey: 'sdk-kBW0vcs9lDPHZcsS',
         enableDevMode: true,
-        enabled: hasConsent, // Enable experiments based on consent status
+        enabled: true, // Always enable experiments, regardless of consent
       });
 
-      if (hasConsent) {
-        // Set tracking callback if user has consented
-        growthbook.setTrackingCallback((experiment, result) => {
-          if (!viewedExperiments.current.has(experiment.key)) {
-            viewedExperiments.current.add(experiment.key); // Add experiment to viewed set
+      // Set tracking callback for internal tracking
+      growthbook.setTrackingCallback((experiment, result) => {
+        if (!viewedExperiments.current.has(experiment.key)) {
+          viewedExperiments.current.add(experiment.key); // Add experiment to viewed set
 
+          // Only push to data layer if user has consented
+          if (hasConsent) {
             window.dataLayer = window.dataLayer || [];
             window.dataLayer.push({
               event: 'experiment_viewed',
@@ -55,17 +56,14 @@ function useGrowthBook() {
               variation_id: result.key,
             });
           }
-        });
+        }
+      });
 
-        // Set attributes with unique user ID as UU
-        growthbook.setAttributes({
-          UU: uniqueUserId,
-        });
-      } else {
-        growthbook.setAttributes({
-          consent: false,
-        });
-      }
+      // Set attributes with unique user ID as UU
+      growthbook.setAttributes({
+        UU: uniqueUserId,
+        consent: hasConsent, // Store consent status as an attribute if needed for other conditions
+      });
 
       growthbook.loadFeatures().then(() => {
         setGb(growthbook); // Update the GrowthBook instance with loaded features
