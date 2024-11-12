@@ -6,7 +6,6 @@ import './App.css';
 function useGrowthBook() {
   const [gb, setGb] = React.useState(() => new GrowthBook());
   const [initialized, setInitialized] = React.useState(false);
-  const viewedExperiments = React.useRef(new Set());
 
   React.useEffect(() => {
     const setPersistentRandomizedCookie = () => {
