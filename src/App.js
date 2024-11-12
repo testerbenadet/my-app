@@ -33,11 +33,11 @@ function useGrowthBook() {
         apiHost: 'https://cdn.growthbook.io',
         clientKey: 'sdk-kBW0vcs9lDPHZcsS',
         enableDevMode: true,
-        enabled: hasConsent, // Enable experiments based on consent status
+        enabled: true, // Always enable experiments
       });
 
       if (hasConsent) {
-        // If the user has consented, set tracking callback
+        // Set tracking callback only if consent is given
         growthbook.setTrackingCallback((experiment, result) => {
           if (!viewedExperiments.current.has(experiment.key)) {
             viewedExperiments.current.add(experiment.key); // Add experiment to viewed set
@@ -52,7 +52,6 @@ function useGrowthBook() {
         });
 
         const user_pseudo_id = getGACookie() || 'default_id';
-
         growthbook.setAttributes({
           user_pseudo_id,
         });
