@@ -22,22 +22,26 @@ function useGrowthBook() {
 
     const hasStatisticsConsent = () => {
       const consentCookie = document.cookie;
-      const hasConsent = consentCookie && consentCookie.includes('statistics:true');
-      return hasConsent;
+      return consentCookie && consentCookie.includes('statistics:true');
     };
 
     const initGrowthBook = () => {
-      const hasConsent = hasStatisticsConsent();
-
       const growthbook = new GrowthBook({
         apiHost: 'https://cdn.growthbook.io',
         clientKey: 'sdk-kBW0vcs9lDPHZcsS',
         enableDevMode: true,
-        enabled: true, // Always enable experiments
+        enabled: true, // Always enable experiments regardless of consent
       });
 
-      if (hasConsent) {
-        // Set tracking callback only if consent is given
+      // Always load features without waiting for consent
+      growthbook.loadFeatures().then(() => {
+        setGb(growthbook); // Update the GrowthBook instance with loaded features
+        setInitialized(true); // Mark GrowthBook as initialized
+      });
+
+      // Apply tracking callback only if the user has given consent
+      if (hasStatisticsConsent()) {
+        const user_pseudo_id = getGACookie() || 'default_id';
         growthbook.setTrackingCallback((experiment, result) => {
           if (!viewedExperiments.current.has(experiment.key)) {
             viewedExperiments.current.add(experiment.key); // Add experiment to viewed set
@@ -51,7 +55,6 @@ function useGrowthBook() {
           }
         });
 
-        const user_pseudo_id = getGACookie() || 'default_id';
         growthbook.setAttributes({
           user_pseudo_id,
         });
@@ -60,11 +63,6 @@ function useGrowthBook() {
           consent: false,
         });
       }
-
-      growthbook.loadFeatures().then(() => {
-        setGb(growthbook); // Update the GrowthBook instance with loaded features
-        setInitialized(true); // Mark GrowthBook as initialized
-      });
     };
 
     if (!initialized) {
