@@ -7,6 +7,7 @@ function useGrowthBook() {
   const [gb, setGb] = React.useState(() => new GrowthBook());
   const [initialized, setInitialized] = React.useState(false);
   const viewedExperiments = React.useRef(new Set()); // Track viewed experiments
+  const pendingEvents = React.useRef([]); // Store events until consent is given
 
   React.useEffect(() => {
     const getGACookie = () => {
@@ -26,43 +27,56 @@ function useGrowthBook() {
     };
 
     const initGrowthBook = () => {
+      const hasConsent = hasStatisticsConsent();
+
       const growthbook = new GrowthBook({
         apiHost: 'https://cdn.growthbook.io',
         clientKey: 'sdk-kBW0vcs9lDPHZcsS',
         enableDevMode: true,
-        enabled: true, // Always enable experiments regardless of consent
+        enabled: true, // Always enable experiments
       });
 
-      // Always load features without waiting for consent
-      growthbook.loadFeatures().then(() => {
-        setGb(growthbook); // Update the GrowthBook instance with loaded features
-        setInitialized(true); // Mark GrowthBook as initialized
-      });
-
-      // Apply tracking callback only if the user has given consent
-      if (hasStatisticsConsent()) {
+      if (hasConsent) {
+        // If the user has consented, set attributes including user_pseudo_id
         const user_pseudo_id = getGACookie() || 'default_id';
-        growthbook.setTrackingCallback((experiment, result) => {
-          if (!viewedExperiments.current.has(experiment.key)) {
-            viewedExperiments.current.add(experiment.key); // Add experiment to viewed set
-
-            window.dataLayer = window.dataLayer || [];
-            window.dataLayer.push({
-              event: 'experiment_viewed',
-              experiment_id: experiment.key,
-              variation_id: result.key,
-            });
-          }
-        });
-
         growthbook.setAttributes({
           user_pseudo_id,
         });
       } else {
+        // If consent not given, set minimal attributes
         growthbook.setAttributes({
           consent: false,
         });
       }
+
+      // Set the tracking callback unconditionally
+      growthbook.setTrackingCallback((experiment, result) => {
+        if (!viewedExperiments.current.has(experiment.key)) {
+          viewedExperiments.current.add(experiment.key); // Add experiment to viewed set
+
+          const eventData = {
+            event: 'experiment_viewed',
+            experiment_id: experiment.key,
+            variation_id: result.key,
+            pagePath: window.location.pathname,
+          };
+
+          if (hasStatisticsConsent()) {
+            // Consent given, push event to dataLayer
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push(eventData);
+          } else {
+            // Consent not given, store the event to push later
+            pendingEvents.current.push(eventData);
+          }
+        }
+      });
+
+      // Load features
+      growthbook.loadFeatures().then(() => {
+        setGb(growthbook);
+        setInitialized(true);
+      });
     };
 
     if (!initialized) {
@@ -71,6 +85,17 @@ function useGrowthBook() {
 
     const onConsentChanged = () => {
       initGrowthBook(); // Reinitialize GrowthBook on consent change
+
+      if (hasStatisticsConsent()) {
+        // Consent has been given, push any pending events
+        if (pendingEvents.current.length > 0) {
+          window.dataLayer = window.dataLayer || [];
+          pendingEvents.current.forEach(eventData => {
+            window.dataLayer.push(eventData);
+          });
+          pendingEvents.current = []; // Clear pending events
+        }
+      }
     };
 
     window.addEventListener('CookiebotOnConsentReady', onConsentChanged);
