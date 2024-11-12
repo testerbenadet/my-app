@@ -33,8 +33,6 @@ function useGrowthBook() {
     };
 
     const initGrowthBook = () => {
-      const hasConsent = hasStatisticsConsent();
-
       const growthbook = new GrowthBook({
         apiHost: 'https://cdn.growthbook.io',
         clientKey: 'sdk-kBW0vcs9lDPHZcsS',
@@ -48,7 +46,7 @@ function useGrowthBook() {
           viewedExperiments.current.add(experiment.key); // Add experiment to viewed set
 
           // Only push to data layer if user has consented
-          if (hasConsent) {
+          if (hasStatisticsConsent()) {
             window.dataLayer = window.dataLayer || [];
             window.dataLayer.push({
               event: 'experiment_viewed',
@@ -62,7 +60,7 @@ function useGrowthBook() {
       // Set attributes with unique user ID as UU
       growthbook.setAttributes({
         UU: uniqueUserId,
-        consent: hasConsent, // Store consent status as an attribute if needed for other conditions
+        consent: hasStatisticsConsent(), // Store consent status as an attribute if needed for other conditions
       });
 
       growthbook.loadFeatures().then(() => {
@@ -76,7 +74,17 @@ function useGrowthBook() {
     }
 
     const onConsentChanged = () => {
-      initGrowthBook(); // Reinitialize GrowthBook on consent change
+      if (hasStatisticsConsent()) {
+        // If consent has been given, re-run the tracking callback for all viewed experiments
+        viewedExperiments.current.forEach(experimentKey => {
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({
+            event: 'experiment_viewed',
+            experiment_id: experimentKey,
+            variation_id: gb.getFeatureValue(experimentKey), // Get the variation ID for the experiment
+          });
+        });
+      }
     };
 
     window.addEventListener('CookiebotOnConsentReady', onConsentChanged);
@@ -88,7 +96,7 @@ function useGrowthBook() {
       window.removeEventListener('CookiebotOnAccept', onConsentChanged);
       window.removeEventListener('CookiebotOnDecline', onConsentChanged);
     };
-  }, [initialized]);
+  }, [initialized, gb]);
 
   return gb;
 }
