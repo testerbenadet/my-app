@@ -6,59 +6,97 @@ import './App.css';
 function useGrowthBook() {
   const [gb, setGb] = React.useState(() => new GrowthBook());
   const [initialized, setInitialized] = React.useState(false);
+  const viewedExperiments = React.useRef(new Set()); // Track viewed experiments
 
   React.useEffect(() => {
-    const COOKIE_NAME = 'unique_user_id';
-
-    const setPersistentRandomizedCookie = () => {
+    const setUniqueUserIdCookie = () => {
+      const COOKIE_NAME = 'unique_user_id';
       let cookieValue = document.cookie
         .split('; ')
         .find(row => row.startsWith(`${COOKIE_NAME}=`));
 
       if (!cookieValue) {
-        // Create a unique identifier if the cookie does not exist
-        const randomId = `id_${Math.random().toString(36).substring(2, 15)}`;
-        document.cookie = `${COOKIE_NAME}=${randomId}; path=/; max-age=31536000`; // 1-year expiration
-        return randomId;
+        const uniqueId = `id_${Math.random().toString(36).substring(2, 15)}`;
+        document.cookie = `${COOKIE_NAME}=${uniqueId}; path=/; max-age=31536000`; // Set cookie for 1 year
+        return uniqueId;
       } else {
-        return cookieValue.split('=')[1]; // Extract the actual value of the cookie
+        return cookieValue.split('=')[1];
       }
     };
 
-    const uniqueUserId = setPersistentRandomizedCookie(); // Get or set the persistent cookie
+    const uniqueUserId = setUniqueUserIdCookie(); // Generate or get the unique user ID
+
+    const hasStatisticsConsent = () => {
+      const consentCookie = document.cookie;
+      const hasConsent = consentCookie && consentCookie.includes('statistics:true');
+      return hasConsent;
+    };
 
     const initGrowthBook = () => {
+      const hasConsent = hasStatisticsConsent();
+
       const growthbook = new GrowthBook({
         apiHost: 'https://cdn.growthbook.io',
         clientKey: 'sdk-kBW0vcs9lDPHZcsS',
         enableDevMode: true,
-        enabled: true,
+        enabled: hasConsent, // Enable experiments based on consent status
       });
 
-      // Setting attributes for GrowthBook, including the unique user ID as "UU"
-      growthbook.setAttributes({
-        loggedIn: false,       // example attribute
-        deviceId: 'web',       // example attribute
-        UU: uniqueUserId,      // Set "UU" attribute to the unique_user_id cookie value
-      });
+      if (hasConsent) {
+        // Set tracking callback if user has consented
+        growthbook.setTrackingCallback((experiment, result) => {
+          if (!viewedExperiments.current.has(experiment.key)) {
+            viewedExperiments.current.add(experiment.key); // Add experiment to viewed set
+
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+              event: 'experiment_viewed',
+              experiment_id: experiment.key,
+              variation_id: result.key,
+            });
+          }
+        });
+
+        // Set attributes with unique user ID as UU
+        growthbook.setAttributes({
+          UU: uniqueUserId,
+        });
+      } else {
+        growthbook.setAttributes({
+          consent: false,
+        });
+      }
 
       growthbook.loadFeatures().then(() => {
-        setGb(growthbook);
-        setInitialized(true);
+        setGb(growthbook); // Update the GrowthBook instance with loaded features
+        setInitialized(true); // Mark GrowthBook as initialized
       });
     };
 
     if (!initialized) {
-      initGrowthBook();
+      initGrowthBook(); // Initialize only if not already initialized
     }
 
+    const onConsentChanged = () => {
+      initGrowthBook(); // Reinitialize GrowthBook on consent change
+    };
+
+    window.addEventListener('CookiebotOnConsentReady', onConsentChanged);
+    window.addEventListener('CookiebotOnAccept', onConsentChanged);
+    window.addEventListener('CookiebotOnDecline', onConsentChanged);
+
+    return () => {
+      window.removeEventListener('CookiebotOnConsentReady', onConsentChanged);
+      window.removeEventListener('CookiebotOnAccept', onConsentChanged);
+      window.removeEventListener('CookiebotOnDecline', onConsentChanged);
+    };
   }, [initialized]);
 
   return gb;
 }
 
 export default function App() {
-  const gb = useGrowthBook();
+  const gb = useGrowthBook(); // Use the custom hook to get the GrowthBook instance
 
   return (
     <GrowthBookProvider growthbook={gb}>
@@ -107,7 +145,7 @@ function ReadMoreButton() {
     });
   };
 
-  if (!isReadMoreEnabled) return null;
+  if (!isReadMoreEnabled) return null; // Only show if the feature is enabled
 
   return (
     <button className="read-more-button" onClick={handleReadMoreClick}>
