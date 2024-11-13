@@ -19,16 +19,6 @@ function getUniqueUserId() {
   }
 }
 
-// Function to push user property to dataLayer
-function setUserPropertyInDataLayer(uniqueUserId) {
-  window.dataLayer = window.dataLayer || [];
-  window.dataLayer.push({
-    'user_properties': {
-      'custom_uuid': uniqueUserId
-    }
-  });
-}
-
 function useGrowthBook() {
   const [gb, setGb] = React.useState(() => new GrowthBook());
   const [initialized, setInitialized] = React.useState(false);
@@ -89,9 +79,6 @@ function useGrowthBook() {
 
     const onConsentChanged = () => {
       if (hasStatisticsConsent()) {
-        // Push the user property to dataLayer upon consent
-        setUserPropertyInDataLayer(uniqueUserId);
-
         // If consent has been given, re-run the tracking callback for all viewed experiments
         viewedExperiments.current.forEach(experimentKey => {
           if (!dataLayerEventsPushed.current.has(experimentKey)) {
@@ -102,13 +89,12 @@ function useGrowthBook() {
               variation_id: gb.getFeatureValue(experimentKey), // Get the variation ID for the experiment
               anonymous_id: uniqueUserId, // Ensure consistency
             });
-            dataLayerEventsPushed.current.add(experimentKey); // Corrected: Use 'experimentKey' instead of 'experiment.key'
+            dataLayerEventsPushed.current.add(experimentKey); // Mark as pushed
           }
         });
       }
     };
 
-    // Listen to consent-related events
     window.addEventListener('CookiebotOnConsentReady', onConsentChanged);
     window.addEventListener('CookiebotOnAccept', onConsentChanged);
     window.addEventListener('CookiebotOnDecline', onConsentChanged);
@@ -125,9 +111,6 @@ function useGrowthBook() {
 
 export default function App() {
   const gb = useGrowthBook(); // Use the custom hook to get the GrowthBook instance
-  const uniqueUserId = getUniqueUserId(); // Retrieve unique_user_id
-
-  // No need for separate useEffect to push user property here
 
   return (
     <GrowthBookProvider growthbook={gb}>
