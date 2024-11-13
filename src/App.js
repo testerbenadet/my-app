@@ -102,7 +102,7 @@ function useGrowthBook() {
               variation_id: gb.getFeatureValue(experimentKey), // Get the variation ID for the experiment
               anonymous_id: uniqueUserId, // Ensure consistency
             });
-            dataLayerEventsPushed.current.add(experiment.key); // Mark as pushed
+            dataLayerEventsPushed.current.add(experimentKey); // Corrected: Use 'experimentKey' instead of 'experiment.key'
           }
         });
       }
