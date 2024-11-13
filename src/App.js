@@ -136,7 +136,6 @@ function CTAButton() {
       event: 'addToCartClick',
       buttonText: isBuyNowEnabled ? 'Buy Now!' : 'Add to Cart',
       pagePath: window.location.pathname,
-      anonymous_id: uniqueUserId,
     });
   };
 
@@ -156,7 +155,6 @@ function ReadMoreButton() {
       event: 'readMoreClick',
       buttonText: 'Read More',
       pagePath: window.location.pathname,
-      anonymous_id: uniqueUserId,
     });
   };
 
