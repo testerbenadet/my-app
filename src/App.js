@@ -86,6 +86,7 @@ function useGrowthBook() {
               event: 'experiment_viewed',
               experiment_id: experimentKey,
               variation_id: gb.getFeatureValue(experimentKey), // Get the variation ID for the experiment
+              anonymous_id: uniqueUserId,,
             });
             dataLayerEventsPushed.current.add(experimentKey); // Mark as pushed
           }
