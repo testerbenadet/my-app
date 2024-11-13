@@ -53,6 +53,7 @@ function useGrowthBook() {
               event: 'experiment_viewed',
               experiment_id: experiment.key,
               variation_id: result.key,
+              anonymous_id: uniqueUserId,
             });
             dataLayerEventsPushed.current.add(experiment.key); // Mark as pushed
           }
