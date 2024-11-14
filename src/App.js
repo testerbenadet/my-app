@@ -44,19 +44,21 @@ function useGrowthBook() {
 
       // Set tracking callback for internal tracking
       growthbook.setTrackingCallback((experiment, result) => {
-        if (!viewedExperiments.current.has(experiment.key)) {
-          viewedExperiments.current.add(experiment.key); // Add experiment to viewed set
+  const experimentVariationKey = `${experiment.key}-${result.key}`;
+  
+  if (!viewedExperiments.current.has(experimentVariationKey)) {
+    viewedExperiments.current.add(experimentVariationKey); // Track viewed experiment-variation combination
 
-          // Only push to data layer if user has consented and event hasn't been pushed
-          if (hasStatisticsConsent() && !dataLayerEventsPushed.current.has(experiment.key)) {
-            window.dataLayer = window.dataLayer || [];
-            window.dataLayer.push({
-              event: 'experiment_viewed',
-              experiment_id: experiment.key,
-              variation_id: result.key,
-              anonymous_id: uniqueUserId, // Ensure this matches the attribute
-            });
-            dataLayerEventsPushed.current.add(experiment.key); // Mark as pushed
+    // Only push to data layer if user has consented and event hasn't been pushed
+    if (hasStatisticsConsent() && !dataLayerEventsPushed.current.has(experimentVariationKey)) {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'experiment_viewed',
+        experiment_id: experiment.key,
+        variation_id: result.key,
+        anonymous_id: uniqueUserId, // Ensure this matches the attribute
+      });
+      dataLayerEventsPushed.current.add(experimentVariationKey); // Mark as pushed
           }
         }
       });
