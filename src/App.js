@@ -22,11 +22,11 @@ function getUniqueUserId() {
 function useGrowthBook() {
   const [gb, setGb] = React.useState(() => new GrowthBook());
   const [initialized, setInitialized] = React.useState(false);
-  const viewedExperiments = React.useRef(new Set()); // Track viewed experiments
-  const dataLayerEventsPushed = React.useRef(new Set()); // Track data layer events
+  const viewedExperiments = React.useRef(new Set());
+  const dataLayerEventsPushed = React.useRef(new Set());
 
   React.useEffect(() => {
-    const uniqueUserId = getUniqueUserId(); // Generate or get the unique user ID
+    const uniqueUserId = getUniqueUserId();
 
     const hasStatisticsConsent = () => {
       const consentCookie = document.cookie;
@@ -39,66 +39,63 @@ function useGrowthBook() {
         apiHost: 'https://cdn.growthbook.io',
         clientKey: 'sdk-kBW0vcs9lDPHZcsS',
         enableDevMode: true,
-        enabled: true, // Always enable experiments, regardless of consent
+        enabled: true,
       });
 
-      // Set tracking callback for internal tracking
-        growthbook.setTrackingCallback((experiment, result) => {
-  if (!viewedExperiments.current.has(experiment.key)) {
-    viewedExperiments.current.add(experiment.key); // Add experiment to viewed set
+      growthbook.setTrackingCallback((experiment, result) => {
+        if (!viewedExperiments.current.has(experiment.key)) {
+          viewedExperiments.current.add(experiment.key);
 
-    // Only push to data layer if user has consented and event hasn't been pushed
-    if (hasStatisticsConsent() && !dataLayerEventsPushed.current.has(experiment.key)) {
-      window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push({
-        event: 'experiment_viewed',
-        experiment_id: experiment.key,
-        variation_id: result.variationId,
-        anonymous_id: uniqueUserId, // Ensure this matches the attribute
-      });
-      dataLayerEventsPushed.current.add(experiment.key); // Mark as pushed
-    }
-  }
-});
-
-// Set attributes with unique user ID as anonymous_id
-growthbook.setAttributes({
-  anonymous_id: uniqueUserId, // Align with event tracking
-  consent: hasStatisticsConsent(), // Store consent status as an attribute if needed for other conditions
-});
-
-growthbook.loadFeatures().then(() => {
-  setGb(growthbook); // Update the GrowthBook instance with loaded features
-  setInitialized(true); // Mark GrowthBook as initialized
-});
-
-if (!initialized) {
-  initGrowthBook(); // Initialize only if not already initialized
-}
-
-// Modified onConsentChanged function
-const onConsentChanged = () => {
-  if (hasStatisticsConsent()) {
-    viewedExperiments.current.forEach(experimentKey => {
-      if (!dataLayerEventsPushed.current.has(experimentKey)) {
-        const experiment = growthbook.getExperiment(experimentKey);
-        if (experiment) {
-          const result = growthbook.getExperimentResult(experimentKey);
-          if (result) {
+          if (hasStatisticsConsent() && !dataLayerEventsPushed.current.has(experiment.key)) {
             window.dataLayer = window.dataLayer || [];
             window.dataLayer.push({
               event: 'experiment_viewed',
-              experiment_id: experimentKey,
-              variation_id: result.variationId, // Use variationId consistently
+              experiment_id: experiment.key,
+              variation_id: result.variationId,
               anonymous_id: uniqueUserId,
             });
-            dataLayerEventsPushed.current.add(experimentKey);
-         }
+            dataLayerEventsPushed.current.add(experiment.key);
+          }
         }
+      });
+
+      growthbook.setAttributes({
+        anonymous_id: uniqueUserId,
+        consent: hasStatisticsConsent(),
+      });
+
+      growthbook.loadFeatures().then(() => {
+        setGb(growthbook);
+        setInitialized(true);
+      });
+    };
+
+    if (!initialized) {
+      initGrowthBook(); // Ensure GrowthBook is only initialized once
+    }
+
+    const onConsentChanged = () => {
+      if (hasStatisticsConsent()) {
+        viewedExperiments.current.forEach((experimentKey) => {
+          if (!dataLayerEventsPushed.current.has(experimentKey)) {
+            const experiment = gb.getExperiment(experimentKey);
+            if (experiment) {
+              const result = gb.getExperimentResult(experimentKey);
+              if (result) {
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({
+                  event: 'experiment_viewed',
+                  experiment_id: experimentKey,
+                  variation_id: result.variationId,
+                  anonymous_id: uniqueUserId,
+                });
+                dataLayerEventsPushed.current.add(experimentKey);
+              }
+            }
+          }
+        });
       }
-    });
-  }
-};
+    };
 
     window.addEventListener('CookiebotOnConsentReady', onConsentChanged);
     window.addEventListener('CookiebotOnAccept', onConsentChanged);
@@ -113,7 +110,6 @@ const onConsentChanged = () => {
 
   return gb;
 }
-
 export default function App() {
   const gb = useGrowthBook(); // Use the custom hook to get the GrowthBook instance
 
