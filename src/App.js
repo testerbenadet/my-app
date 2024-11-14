@@ -43,9 +43,9 @@ function useGrowthBook() {
       });
 
       // Set tracking callback for internal tracking
-      growthbook.setTrackingCallback((experiment, result) => {
-  const experimentVariationKey = `${experiment.key}-${result.key}`;
-  
+growthbook.setTrackingCallback((experiment, result) => {
+  const experimentVariationKey = `${experiment.key}-${result.key || 'undefined'}`;
+
   if (!viewedExperiments.current.has(experimentVariationKey)) {
     viewedExperiments.current.add(experimentVariationKey); // Track viewed experiment-variation combination
 
@@ -55,7 +55,7 @@ function useGrowthBook() {
       window.dataLayer.push({
         event: 'experiment_viewed',
         experiment_id: experiment.key,
-        variation_id: result.key,
+        variation_id: result.key || 'default', // Use a default if result.key is undefined
         anonymous_id: uniqueUserId, // Ensure this matches the attribute
       });
       dataLayerEventsPushed.current.add(experimentVariationKey); // Mark as pushed
