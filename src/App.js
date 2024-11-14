@@ -70,43 +70,43 @@ function useGrowthBook() {
   }, []);
 
   React.useEffect(() => {
-    const uniqueUserId = getUniqueUserId();
-    
-    const hasStatisticsConsent = () => {
-      const consentCookie = document.cookie;
-      return consentCookie && consentCookie.includes('statistics:true');
-    };
+  const uniqueUserId = getUniqueUserId();
+  
+  const hasStatisticsConsent = () => {
+    const consentCookie = document.cookie;
+    return consentCookie && consentCookie.includes('statistics:true');
+  };
 
-    const onConsentChanged = () => {
-      if (hasStatisticsConsent() && featuresLoaded) { // Only proceed if features are loaded
-        viewedExperiments.current.forEach((experiment.key) => {
-          if (!dataLayerEventsPushed.current.has(experiment.key)) {
-            const result = gb.getExperimentResult(experiment.key);
-            if (result) {
-              window.dataLayer = window.dataLayer || [];
-              window.dataLayer.push({
-                event: 'experiment_viewed',
-                experiment_id: experiment.key,
-                variation_id: result.key,
-                anonymous_id: uniqueUserId,
-              });
-              dataLayerEventsPushed.current.add(experiment.key);
-            }
+  const onConsentChanged = () => {
+    if (hasStatisticsConsent() && featuresLoaded) { // Only proceed if features are loaded
+      viewedExperiments.current.forEach((experimentKey) => { // Use experimentKey as the parameter name
+        if (!dataLayerEventsPushed.current.has(experimentKey)) {
+          const result = gb.getExperimentResult(experimentKey);
+          if (result) {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+              event: 'experiment_viewed',
+              experiment_id: experimentKey,
+              variation_id: result.key,
+              anonymous_id: uniqueUserId,
+            });
+            dataLayerEventsPushed.current.add(experimentKey);
           }
-        });
-      }
-    };
+        }
+      });
+    }
+  };
 
-    window.addEventListener('CookiebotOnConsentReady', onConsentChanged);
-    window.addEventListener('CookiebotOnAccept', onConsentChanged);
-    window.addEventListener('CookiebotOnDecline', onConsentChanged);
+  window.addEventListener('CookiebotOnConsentReady', onConsentChanged);
+  window.addEventListener('CookiebotOnAccept', onConsentChanged);
+  window.addEventListener('CookiebotOnDecline', onConsentChanged);
 
-    return () => {
-      window.removeEventListener('CookiebotOnConsentReady', onConsentChanged);
-      window.removeEventListener('CookiebotOnAccept', onConsentChanged);
-      window.removeEventListener('CookiebotOnDecline', onConsentChanged);
-    };
-  }, [gb, featuresLoaded]);
+  return () => {
+    window.removeEventListener('CookiebotOnConsentReady', onConsentChanged);
+    window.removeEventListener('CookiebotOnAccept', onConsentChanged);
+    window.removeEventListener('CookiebotOnDecline', onConsentChanged);
+  };
+}, [gb, featuresLoaded]);
 
   return gb;
 }
