@@ -22,6 +22,7 @@ function getUniqueUserId() {
 function useGrowthBook() {
   const viewedExperiments = React.useRef(new Set());
   const dataLayerEventsPushed = React.useRef(new Set());
+  const experimentResults = React.useRef(new Map()); // New ref to store experiment results
   const [featuresLoaded, setFeaturesLoaded] = React.useState(false);
 
   // Use useRef to store uniqueUserId so it remains constant
@@ -33,7 +34,6 @@ function useGrowthBook() {
     return consentCookie && consentCookie.includes('statistics:true');
   };
 
-  // Include uniqueUserId in the dependency array
   const gb = React.useMemo(() => {
     const growthbook = new GrowthBook({
       apiHost: 'https://cdn.growthbook.io',
@@ -45,6 +45,9 @@ function useGrowthBook() {
     growthbook.setTrackingCallback((experiment, result) => {
       if (!viewedExperiments.current.has(experiment.key)) {
         viewedExperiments.current.add(experiment.key);
+
+        // Store the experiment result
+        experimentResults.current.set(experiment.key, result);
 
         if (hasStatisticsConsent() && !dataLayerEventsPushed.current.has(experiment.key)) {
           window.dataLayer = window.dataLayer || [];
@@ -69,14 +72,15 @@ function useGrowthBook() {
     });
 
     return growthbook;
-  }, [uniqueUserId]); // Include uniqueUserId here
+  }, [uniqueUserId]);
 
   React.useEffect(() => {
     const onConsentChanged = () => {
       if (hasStatisticsConsent() && featuresLoaded) {
         viewedExperiments.current.forEach((experimentKey) => {
           if (!dataLayerEventsPushed.current.has(experimentKey)) {
-            const result = gb.getExperimentResult(experimentKey);
+            // Get the result from experimentResults map
+            const result = experimentResults.current.get(experimentKey);
             if (result) {
               window.dataLayer = window.dataLayer || [];
               window.dataLayer.push({
@@ -101,7 +105,7 @@ function useGrowthBook() {
       window.removeEventListener('CookiebotOnAccept', onConsentChanged);
       window.removeEventListener('CookiebotOnDecline', onConsentChanged);
     };
-  }, [gb, featuresLoaded, uniqueUserId]); // Include uniqueUserId here
+  }, [gb, featuresLoaded, uniqueUserId]);
 
   return gb;
 }
