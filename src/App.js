@@ -44,52 +44,55 @@ function useGrowthBook() {
 
       // Set tracking callback for internal tracking
         growthbook.setTrackingCallback((experiment, result) => {
-        if (!viewedExperiments.current.has(experiment.key)) {
-          viewedExperiments.current.add(experiment.key); // Add experiment to viewed set
+  if (!viewedExperiments.current.has(experiment.key)) {
+    viewedExperiments.current.add(experiment.key); // Add experiment to viewed set
 
-          // Only push to data layer if user has consented and event hasn't been pushed
-          if (hasStatisticsConsent() && !dataLayerEventsPushed.current.has(experiment.key)) {
-            window.dataLayer = window.dataLayer || [];
-            window.dataLayer.push({
-              event: 'experiment_viewed',
-              experiment_id: experiment.key,
-              variation_id: result.variationId,
-              anonymous_id: uniqueUserId, // Ensure this matches the attribute
-            });
-            dataLayerEventsPushed.current.add(experiment.key); // Mark as pushed
-          }
-        }
+    // Only push to data layer if user has consented and event hasn't been pushed
+    if (hasStatisticsConsent() && !dataLayerEventsPushed.current.has(experiment.key)) {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'experiment_viewed',
+        experiment_id: experiment.key,
+        variation_id: result.variationId,
+        anonymous_id: uniqueUserId, // Ensure this matches the attribute
       });
-
-      // Set attributes with unique user ID as anonymous_id
-      growthbook.setAttributes({
-        anonymous_id: uniqueUserId, // Align with event tracking
-        consent: hasStatisticsConsent(), // Store consent status as an attribute if needed for other conditions
-      });
-
-      growthbook.loadFeatures().then(() => {
-        setGb(growthbook); // Update the GrowthBook instance with loaded features
-        setInitialized(true); // Mark GrowthBook as initialized
-      });
-    };
-
-    if (!initialized) {
-      initGrowthBook(); // Initialize only if not already initialized
+      dataLayerEventsPushed.current.add(experiment.key); // Mark as pushed
     }
+  }
+});
 
-    const onConsentChanged = () => {
-      if (hasStatisticsConsent()) {
-        // If consent has been given, re-run the tracking callback for all viewed experiments
-        viewedExperiments.current.forEach(experimentKey => {
-          if (!dataLayerEventsPushed.current.has(experimentKey)) {
+// Set attributes with unique user ID as anonymous_id
+growthbook.setAttributes({
+  anonymous_id: uniqueUserId, // Align with event tracking
+  consent: hasStatisticsConsent(), // Store consent status as an attribute if needed for other conditions
+});
+
+growthbook.loadFeatures().then(() => {
+  setGb(growthbook); // Update the GrowthBook instance with loaded features
+  setInitialized(true); // Mark GrowthBook as initialized
+});
+
+if (!initialized) {
+  initGrowthBook(); // Initialize only if not already initialized
+}
+
+// Modified onConsentChanged function
+const onConsentChanged = () => {
+  if (hasStatisticsConsent()) {
+    viewedExperiments.current.forEach(experimentKey => {
+      if (!dataLayerEventsPushed.current.has(experimentKey)) {
+        const experiment = growthbook.getExperiment(experimentKey);
+        if (experiment) {
+          const result = growthbook.getExperimentResult(experimentKey);
+          if (result) {
             window.dataLayer = window.dataLayer || [];
             window.dataLayer.push({
               event: 'experiment_viewed',
               experiment_id: experimentKey,
-              variation_id: gb.getFeatureValue(experimentKey), // Get the variation ID for the experiment
-              anonymous_id: uniqueUserId, // Ensure consistency
+              variation_id: result.variationId, // Use variationId consistently
+              anonymous_id: uniqueUserId,
             });
-            dataLayerEventsPushed.current.add(experimentKey); // Mark as pushed
+            dataLayerEventsPushed.current.add(experimentKey);
           }
         });
       }
