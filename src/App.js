@@ -24,7 +24,9 @@ function useGrowthBook() {
   const dataLayerEventsPushed = React.useRef(new Set());
   const [featuresLoaded, setFeaturesLoaded] = React.useState(false);
 
-  const uniqueUserId = getUniqueUserId();
+  // Use useRef to store uniqueUserId so it remains constant
+  const uniqueUserIdRef = React.useRef(getUniqueUserId());
+  const uniqueUserId = uniqueUserIdRef.current;
 
   const hasStatisticsConsent = () => {
     const consentCookie = document.cookie;
@@ -67,7 +69,7 @@ function useGrowthBook() {
     });
 
     return growthbook;
-  }, []);
+  }, []); // Dependency array is empty because uniqueUserId is constant
 
   React.useEffect(() => {
     const onConsentChanged = () => {
@@ -99,7 +101,7 @@ function useGrowthBook() {
       window.removeEventListener('CookiebotOnAccept', onConsentChanged);
       window.removeEventListener('CookiebotOnDecline', onConsentChanged);
     };
-  }, [gb, featuresLoaded]);
+  }, [gb, featuresLoaded]); // No need to include uniqueUserId
 
   return gb;
 }
