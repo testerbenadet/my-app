@@ -51,7 +51,7 @@ function useGrowthBook() {
             window.dataLayer.push({
               event: 'experiment_viewed',
               experiment_id: experiment.key,
-              variation_id: result.variationId,
+              variation_id: result.key,
               anonymous_id: uniqueUserId,
             });
             dataLayerEventsPushed.current.add(experiment.key);
@@ -86,7 +86,7 @@ function useGrowthBook() {
                 window.dataLayer.push({
                   event: 'experiment_viewed',
                   experiment_id: experimentKey,
-                  variation_id: result.variationId,
+                  variation_id: result.key,
                   anonymous_id: uniqueUserId,
                 });
                 dataLayerEventsPushed.current.add(experimentKey);
