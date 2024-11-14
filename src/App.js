@@ -53,7 +53,7 @@ function useGrowthBook() {
             window.dataLayer.push({
               event: 'experiment_viewed',
               experiment_id: experiment.key,
-              variation_id: result.key,
+              variation_id: result.variationId,
               anonymous_id: uniqueUserId, // Ensure this matches the attribute
             });
             dataLayerEventsPushed.current.add(experiment.key); // Mark as pushed
