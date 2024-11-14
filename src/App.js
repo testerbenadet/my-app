@@ -33,7 +33,7 @@ function useGrowthBook() {
     return consentCookie && consentCookie.includes('statistics:true');
   };
 
-  // Initialize GrowthBook with tracking callback before components render
+  // Include uniqueUserId in the dependency array
   const gb = React.useMemo(() => {
     const growthbook = new GrowthBook({
       apiHost: 'https://cdn.growthbook.io',
@@ -69,7 +69,7 @@ function useGrowthBook() {
     });
 
     return growthbook;
-  }, []); // Dependency array is empty because uniqueUserId is constant
+  }, [uniqueUserId]); // Include uniqueUserId here
 
   React.useEffect(() => {
     const onConsentChanged = () => {
@@ -101,7 +101,7 @@ function useGrowthBook() {
       window.removeEventListener('CookiebotOnAccept', onConsentChanged);
       window.removeEventListener('CookiebotOnDecline', onConsentChanged);
     };
-  }, [gb, featuresLoaded]); // No need to include uniqueUserId
+  }, [gb, featuresLoaded, uniqueUserId]); // Include uniqueUserId here
 
   return gb;
 }
