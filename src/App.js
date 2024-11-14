@@ -93,10 +93,12 @@ const onConsentChanged = () => {
               anonymous_id: uniqueUserId,
             });
             dataLayerEventsPushed.current.add(experimentKey);
-          }
-        });
+         }
+        }
       }
-    };
+    });
+  }
+};
 
     window.addEventListener('CookiebotOnConsentReady', onConsentChanged);
     window.addEventListener('CookiebotOnAccept', onConsentChanged);
