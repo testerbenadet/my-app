@@ -21,16 +21,7 @@ function getUniqueUserId() {
 // Function to detect device type
 function getDeviceType() {
   const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-  if (/windows phone/i.test(userAgent)) {
-    return 'mobile';
-  }
-  if (/android/i.test(userAgent)) {
-    return 'mobile';
-  }
-  if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
-    return 'mobile';
-  }
-  return 'desktop';
+  return /Mobi/i.test(userAgent) ? 'mobile' : 'desktop';
 }
 
 function useGrowthBook() {
