@@ -18,6 +18,20 @@ function getUniqueUserId() {
     return cookieValue.split('=')[1];
   }
 }
+// Function to detect device type
+function getDeviceType() {
+  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+  if (/windows phone/i.test(userAgent)) {
+    return 'mobile';
+  }
+  if (/android/i.test(userAgent)) {
+    return 'mobile';
+  }
+  if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+    return 'mobile';
+  }
+  return 'desktop';
+}
 
 function useGrowthBook() {
   const viewedExperiments = React.useRef(new Set());
@@ -64,9 +78,7 @@ function useGrowthBook() {
 
     growthbook.setAttributes({
       anonymous_id: uniqueUserId,
-      device: deviceCategory,
-      browser: deviceWeb_infoBrowser,
-      consent: hasStatisticsConsent(),
+      device: getDeviceType(),
     });
 
     growthbook.loadFeatures().then(() => {
