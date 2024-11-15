@@ -64,8 +64,8 @@ function useGrowthBook() {
 
     growthbook.setAttributes({
       anonymous_id: uniqueUserId,
-      device: "",
-      browser: "",
+      device: device.category,
+      browser: device.web_info.browser,
       consent: hasStatisticsConsent(),
     });
 
