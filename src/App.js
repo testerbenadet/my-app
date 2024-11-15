@@ -24,6 +24,16 @@ function getDeviceType() {
   return /Mobi/i.test(userAgent) ? 'mobile' : 'desktop';
 }
 
+function getBrowser() {
+  const userAgent = navigator.userAgent.toLowerCase();
+
+  if (userAgent.includes('edg')) return 'edge';
+  if (userAgent.includes('chrome') && !userAgent.includes('edg')) return 'chrome';
+  if (userAgent.includes('safari') && !userAgent.includes('chrome')) return 'safari';
+  if (userAgent.includes('firefox')) return 'firefox';
+  return 'unknown';
+}
+
 function useGrowthBook() {
   const viewedExperiments = React.useRef(new Set());
   const dataLayerEventsPushed = React.useRef(new Set());
@@ -70,6 +80,7 @@ function useGrowthBook() {
     growthbook.setAttributes({
       anonymous_id: uniqueUserId,
       device: getDeviceType(),
+      browser: getBrowser(),
     });
 
     growthbook.loadFeatures().then(() => {
